@@ -1,0 +1,21 @@
+---
+keepers:
+  remote:
+    lastpass:
+      username: sterling@example.com
+
+  local-secure:
+    keepass:
+      path: "$HOME/secrets/keepass.kdbx"
+
+  local-insecure:
+    low:
+      path: "$HOME/secrets/api-keys.yaml"
+
+  local:
+    router:
+      routes:
+        - locations:
+            - api-keys
+          keeper: local-insecure
+      default: local-secure
