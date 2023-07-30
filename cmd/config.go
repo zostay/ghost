@@ -6,15 +6,16 @@ import (
 	"github.com/zostay/ghost/cmd/config"
 )
 
-var configCmd = &cobra.Command{
-	Use:   "config",
-	Short: "Manage the ghost configuration",
-}
+var (
+	configCmd = &cobra.Command{
+		Use:   "config",
+		Short: "Manage the ghost configuration",
+	}
+)
 
 func init() {
-	configCmd.AddCommand(config.KeepassCmd)
-	configCmd.AddCommand(config.LastPassCmd)
-	configCmd.AddCommand(config.LowCmd)
-	configCmd.AddCommand(config.RouterCmd)
-	configCmd.AddCommand(config.SeqCmd)
+	configCmd.AddCommand(config.DeleteCmd)
+	configCmd.AddCommand(config.GetCmd)
+	configCmd.AddCommand(config.ListCmd)
+	configCmd.AddCommand(config.SetCmd)
 }
