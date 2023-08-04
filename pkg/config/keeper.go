@@ -15,6 +15,9 @@ const (
 	KTLastPass
 	KTKeepass
 	KTLowSecurity
+	KTGRPC
+	KTKeyring
+	KTMemory
 	KTRouter
 	KTSeq
 )
@@ -31,6 +34,12 @@ func (kt KeeperType) String() string {
 		return "keepass"
 	case KTLowSecurity:
 		return "low"
+	case KTGRPC:
+		return "grpc"
+	case KTKeyring:
+		return "keyring"
+	case KTMemory:
+		return "memory"
 	case KTRouter:
 		return "router"
 	case KTSeq:
@@ -44,6 +53,9 @@ type KeeperConfig struct {
 	LastPass LastPassConfig    `yaml:"lastpass,omitempty"`
 	Keepass  KeepassConfig     `yaml:"keepass,omitempty"`
 	Low      LowSecurityConfig `yaml:"low,omitempty"`
+	GRPC     GRPCConfig        `yaml:"grpc,omitempty"`
+	Keyring  KeyringConfig     `yaml:"keyring,omitempty"`
+	Memory   InternalConfig    `yaml:"memory,omitempty"`
 	Router   RouterConfig      `yaml:"router,omitempty"`
 	Seq      SeqConfig         `yaml:"seq,omitempty"`
 }
@@ -65,6 +77,17 @@ func (kc *KeeperConfig) Check(c *Config) error {
 		// no additional validation rules...
 
 	case KTLowSecurity:
+		// no additional validation rules...
+
+	case KTGRPC:
+		if kc.GRPC.Listener != "sock" {
+			errs.Append(fmt.Errorf("grpc listener %q is not supported", kc.GRPC.Listener))
+		}
+
+	case KTKeyring:
+		// no additional validation rules...
+
+	case KTMemory:
 		// no additional validation rules...
 
 	case KTRouter:
@@ -118,6 +141,27 @@ func (kc *KeeperConfig) Type() KeeperType {
 		t = KTLowSecurity
 	}
 
+	if kc.GRPC.Listener != "" {
+		if t != KTNone {
+			return KTConflict
+		}
+		t = KTGRPC
+	}
+
+	if kc.Keyring.ServiceName != "" {
+		if t != KTNone {
+			return KTConflict
+		}
+		t = KTKeyring
+	}
+
+	if kc.Memory.Enable {
+		if t != KTNone {
+			return KTConflict
+		}
+		t = KTMemory
+	}
+
 	if len(kc.Router.Routes) > 0 || kc.Router.DefaultRoute != "" {
 		if t != KTNone {
 			return KTConflict
@@ -145,6 +189,18 @@ type KeepassConfig struct {
 
 type LowSecurityConfig struct {
 	Path string `yaml:"path"`
+}
+
+type GRPCConfig struct {
+	Listener string `yaml:"listener"`
+}
+
+type KeyringConfig struct {
+	ServiceName string
+}
+
+type InternalConfig struct {
+	Enable bool `yaml:"enable"`
 }
 
 type RouterConfig struct {
