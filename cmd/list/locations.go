@@ -13,13 +13,23 @@ import (
 var LocationsCmd = &cobra.Command{
 	Use:   "locations",
 	Short: "List the locations that may contain secrets",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Run:   RunListLocations,
 }
 
+func init() {
+	LocationsCmd.Flags().StringVar(&keeperName, "keeper", "", "The name of the secret keeper to use")
+}
+
 func RunListLocations(cmd *cobra.Command, args []string) {
-	keeperName := args[0]
 	c := config.Instance()
+	if keeperName == "" {
+		keeperName = c.MasterKeeper
+	}
+
+	if keeperName == "" {
+		s.Logger.Panic("No keeper specified.")
+	}
 
 	if _, hasConfig := c.Keepers[keeperName]; !hasConfig {
 		s.Logger.Panicf("No keeper named %q.", keeperName)
