@@ -8,7 +8,7 @@ var (
 	KeepassCmd = &cobra.Command{
 		Use:    "keepass <keeper-name> [flags]",
 		Short:  "Configure a Keepass secret keeper",
-		Args:   cobra.MinimumNArgs(1),
+		Args:   cobra.ExactArgs(1),
 		PreRun: PreRunSetKeepassKeeperConfig,
 		Run:    RunSetKeeperConfig,
 	}

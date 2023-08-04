@@ -39,6 +39,14 @@ func PrintKeeper(keeper *config.KeeperConfig, i int) {
 	case config.KTLowSecurity:
 		s.Logger.Printf("%stype: low", indent)
 		s.Logger.Printf("%spath: %s", indent, keeper.Low.Path)
+	case config.KTGRPC:
+		s.Logger.Printf("%stype: grpc", indent)
+		s.Logger.Printf("%slistener: %s", indent, keeper.GRPC.Listener)
+	case config.KTKeyring:
+		s.Logger.Printf("%stype: keyring", indent)
+		s.Logger.Printf("%skeyring: %s", indent, keeper.Keyring.ServiceName)
+	case config.KTMemory:
+		s.Logger.Printf("%stype: memory", indent)
 	case config.KTRouter:
 		s.Logger.Printf("%stype: router", indent)
 		s.Logger.Printf("%sdefault route: %s", indent, keeper.Router.DefaultRoute)

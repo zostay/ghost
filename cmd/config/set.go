@@ -15,11 +15,17 @@ var SetCmd = &cobra.Command{
 }
 
 func init() {
-	SetCmd.AddCommand(set.KeepassCmd)
-	SetCmd.AddCommand(set.LastPassCmd)
-	SetCmd.AddCommand(set.LowSecurityCmd)
-	SetCmd.AddCommand(set.RouterCmd)
-	SetCmd.AddCommand(set.SeqCmd)
+	SetCmd.AddCommand(
+		set.KeepassCmd,
+		set.LastPassCmd,
+		set.LowSecurityCmd,
+		set.GRPCCmd,
+		set.KeyringCmd,
+		set.MemoryCmd,
+
+		set.RouterCmd,
+		set.SeqCmd,
+	)
 }
 
 func PreRunSet(cmd *cobra.Command, args []string) {
