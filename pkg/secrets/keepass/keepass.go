@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	keepass "github.com/tobischo/gokeepasslib/v3"
-	w "github.com/tobischo/gokeepasslib/v3/wrappers"
 	"github.com/zostay/go-std/slices"
 
 	"github.com/zostay/fssafe"
@@ -159,7 +158,7 @@ func (k *Keepass) GetSecret(
 	return nil, secrets.ErrNotFound
 }
 
-// GetSecretsByName retrieves all secrets with teh given name from the Keepass
+// GetSecretsByName retrieves all secrets with the given name from the Keepass
 // database.
 func (k *Keepass) GetSecretsByName(
 	ctx context.Context,
@@ -205,27 +204,6 @@ func (k *Keepass) ensureGroupExists(groupName string) *keepass.Group {
 
 	lastGroup := len(k.db.Content.Root.Groups[0].Groups)
 	return &k.db.Content.Root.Groups[0].Groups[lastGroup]
-}
-
-// setEntryValue replaces a value in an entry or adds the value to the entry
-func (k *Keepass) setEntryValue(e *keepass.Entry, key, value string, protected bool) {
-	// update existing
-	for k, v := range e.Values {
-		if v.Key == key {
-			e.Values[k].Value.Content = value
-			return
-		}
-	}
-
-	// create new
-	newValue := keepass.ValueData{
-		Key: key,
-		Value: keepass.V{
-			Content:   value,
-			Protected: w.NewBoolWrapper(protected),
-		},
-	}
-	e.Values = append(e.Values, newValue)
 }
 
 // SetSecret upserts the secret into the Keepass database file.
@@ -283,7 +261,7 @@ func (k *Keepass) SetSecret(
 
 // performCopy copies the secret into a new location.
 func (k *Keepass) performCopy(
-	ctx context.Context,
+	_ context.Context,
 	newSec *Secret,
 	g *keepass.Group,
 ) {

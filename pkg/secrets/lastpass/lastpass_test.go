@@ -51,6 +51,8 @@ func (lp *testLastPass) Delete(_ context.Context, want *lpass.Account) error {
 }
 
 func TestLastPass(t *testing.T) {
+	t.Parallel()
+
 	factory := func() (secrets.Keeper, error) {
 		return lastpass.NewLastPassWithClient(newTestLastPass())
 	}

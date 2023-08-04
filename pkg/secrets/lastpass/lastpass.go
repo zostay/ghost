@@ -116,7 +116,7 @@ func (l *LastPass) GetSecret(ctx context.Context, id string) (secrets.Secret, er
 	return newSecret(a), nil
 }
 
-// GetSecretsByName returns all the secrets from teh LastPass service with the
+// GetSecretsByName returns all the secrets from the LastPass service with the
 // given name.
 func (l *LastPass) GetSecretsByName(
 	ctx context.Context,

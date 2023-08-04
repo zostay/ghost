@@ -5,7 +5,6 @@ go 1.19
 require (
 	github.com/ansd/lastpass-go v0.4.0
 	github.com/golang/protobuf v1.5.3
-	github.com/gopasspw/pinentry v0.0.2
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4

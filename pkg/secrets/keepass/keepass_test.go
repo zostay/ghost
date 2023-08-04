@@ -13,6 +13,8 @@ import (
 )
 
 func TestKeepass(t *testing.T) {
+	t.Parallel()
+
 	lss := make([]*fssafe.TestingLoaderSaver, 0)
 
 	factory := func() (secrets.Keeper, error) {

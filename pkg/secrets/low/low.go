@@ -3,7 +3,7 @@ package low
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"strconv"
 
 	"github.com/oklog/ulid/v2"
@@ -56,7 +56,7 @@ func (s *LowSecurity) loadSecrets() (*lowSecurityConfig, error) {
 		}
 	}
 
-	yamlSecrets, err := ioutil.ReadAll(r)
+	yamlSecrets, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}

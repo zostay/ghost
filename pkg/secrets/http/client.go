@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"io"
 
 	"github.com/zostay/ghost/pkg/secrets"
@@ -26,7 +27,7 @@ func (c *Client) ListLocations(ctx context.Context) ([]string, error) {
 	locations := []string{}
 	for {
 		loc, err := locStream.Recv()
-		if err != io.EOF {
+		if errors.Is(err, io.EOF) {
 			return locations, nil
 		}
 		if err != nil {
@@ -48,7 +49,7 @@ func (c *Client) ListSecrets(ctx context.Context, location string) ([]string, er
 	secs := []string{}
 	for {
 		sec, err := secStream.Recv()
-		if err != io.EOF {
+		if errors.Is(err, io.EOF) {
 			return secs, nil
 		}
 		if err != nil {
@@ -81,7 +82,7 @@ func (c *Client) GetSecretsByName(ctx context.Context, name string) ([]secrets.S
 	secs := []secrets.Secret{}
 	for {
 		sec, err := rawSecs.Recv()
-		if err != io.EOF {
+		if errors.Is(err, io.EOF) {
 			return secs, nil
 		}
 		if err != nil {

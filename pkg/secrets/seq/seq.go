@@ -148,7 +148,10 @@ func (s *Seq) MoveSecret(
 		return nil, err
 	}
 
-	s.DeleteSecret(ctx, id)
+	err = s.DeleteSecret(ctx, id)
+	if err != nil {
+		return nil, err
+	}
 
 	newSec := secrets.NewSingleFromSecret(sec,
 		secrets.WithID(""),

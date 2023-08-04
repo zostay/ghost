@@ -8,6 +8,8 @@ import (
 )
 
 func TestInternal(t *testing.T) {
+	t.Parallel()
+
 	factory := func() (secrets.Keeper, error) {
 		return secrets.NewInternal()
 	}

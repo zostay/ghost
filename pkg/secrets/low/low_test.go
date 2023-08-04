@@ -11,6 +11,8 @@ import (
 )
 
 func TestLowSecurity(t *testing.T) {
+	t.Parallel()
+
 	factory := func() (secrets.Keeper, error) {
 		return low.NewLowSecurityCustom(fssafe.NewTestingLoaderSaver()), nil
 	}

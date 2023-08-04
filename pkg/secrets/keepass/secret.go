@@ -89,7 +89,7 @@ func fromSecret(
 	return eSec
 }
 
-// setEntryValue replaces a value in an entry or adds the value to the entry
+// setEntryValue replaces a value in an entry or adds the value to the entry.
 func (s *Secret) setEntryValue(key, value string, protected bool) {
 	// update existing
 	for k, v := range s.e.Values {

@@ -1,0 +1,58 @@
+---
+run:
+  concurrency: 4
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+    - depguard
+    - errorlint
+    - errname
+    - exhaustive
+    - exportloopref
+    - gocritic
+    - godot
+    - gofmt
+    - gosec
+    - misspell
+    - nolintlint
+    - paralleltest
+    - prealloc
+    - predeclared
+    - tparallel
+    - unparam
+    - whitespace
+
+linters-settings:
+  depguard:
+    rules:
+      main:
+        files:
+          - "$all"
+          - "!$test"
+          - "!**/pkg/secrets/keepertest/*.go"
+        allow:
+          - "$gostd"
+          - github.com/spf13/cobra
+          - github.com/zostay
+          - github.com/oklog/ulid
+          - github.com/ansd/lastpass-go
+          - github.com/zalando/go-keyring
+          - github.com/tobischo/gokeepasslib
+          - github.com/golang
+
+      tests:
+        files:
+          - "$test"
+          - "**/pkg/secrets/keepertest/*.go"
+        allow:
+          - "$gostd"
+          - github.com/stretchr/testify
+          - github.com/zostay
+          - github.com/ansd/lastpass-go

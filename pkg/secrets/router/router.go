@@ -96,7 +96,7 @@ func handleStop(err error) error {
 }
 
 func (r *Router) keeperForLocation(
-	ctx context.Context,
+	_ context.Context,
 	location string,
 ) (string, secrets.Keeper) {
 	for _, m := range r.keepers {
@@ -227,15 +227,6 @@ func (r *Router) findSecretMatchingId(
 	}
 
 	return keeperId, keeper, secret, nil
-}
-
-func (r *Router) forEachSecretInLocation(
-	ctx context.Context,
-	location string,
-	run func(secret secrets.Secret) error,
-) error {
-	keeperId, keeper := r.keeperForLocation(ctx, location)
-	return r.forEachSecretInKeeperLocation(ctx, keeperId, keeper, location, run)
 }
 
 // ListSecrets will list all secrets from the secrets.Keeper store that owns the
@@ -389,6 +380,9 @@ func (r *Router) MoveSecret(
 		secrets.WithID(""),
 		secrets.WithLocation(location))
 	newSec, err := newKeeper.SetSecret(ctx, newSingle)
+	if err != nil {
+		return nil, err
+	}
 
 	err = keeper.DeleteSecret(ctx, id)
 	return newSecret(newKeeperId, newSec), err

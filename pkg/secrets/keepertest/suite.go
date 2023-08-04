@@ -14,7 +14,6 @@ type KeeperFactory func() (secrets.Keeper, error)
 
 type Suite struct {
 	factory KeeperFactory
-	folders []string
 }
 
 func New(f KeeperFactory) *Suite {
@@ -63,7 +62,7 @@ func (s *Suite) SecretKeeperSetAndGet(t *testing.T) {
 	assert.Equal(t, "secret1", got.Password, "got secret value secret1")
 
 	// update
-	sec = secrets.SetSecret(sec, "secret2")
+	sec = secrets.SetPassword(sec, "secret2")
 	sec, err = k.SetSecret(ctx, sec)
 
 	require.NoError(t, err, "setting again doesn't error")

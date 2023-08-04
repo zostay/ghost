@@ -61,5 +61,9 @@ func PrintKeeper(keeper *config.KeeperConfig, i int) {
 		for _, keeper := range keeper.Seq.Keepers {
 			s.Logger.Printf("%s  - %s", indent, keeper)
 		}
+	case config.KTNone:
+		s.Logger.Printf("%sERROR: keeper is not configured", indent)
+	case config.KTConflict:
+		s.Logger.Printf("%sERROR: keeper has multiple configuration", indent)
 	}
 }

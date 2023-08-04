@@ -1,5 +1,10 @@
 master: local
 keepers:
+  foo:
+    seq:
+      keepers:
+        - local-secure
+        - local-insecure
   local:
     router:
       routes:

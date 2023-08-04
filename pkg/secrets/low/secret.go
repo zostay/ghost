@@ -53,14 +53,12 @@ func (s *Secret) UnmarshalYAML(node *yaml.Node) error {
 
 		if node.Content[i].Value == "Fields" &&
 			node.Content[i+1].Kind == yaml.MappingNode {
-
 			fNode := node.Content[i+1]
 			for j := 0; j < len(fNode.Content); j += 2 {
 				key := fNode.Content[j].Value
 				val := fNode.Content[j+1].Value
 				s.Single.SetField(key, val)
 			}
-
 		}
 
 		if node.Content[i+1].Kind != yaml.ScalarNode {

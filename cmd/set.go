@@ -126,10 +126,16 @@ func RunSet(cmd *cobra.Command, args []string) {
 
 	if moveLocation != "" {
 		newSec, err = kpr.MoveSecret(ctx, newSec.ID(), moveLocation)
+		if err != nil {
+			s.Logger.Panic(err)
+		}
 	}
 
 	if copyLocation != "" {
 		newSec, err = kpr.CopySecret(ctx, newSec.ID(), copyLocation)
+		if err != nil {
+			s.Logger.Panic(err)
+		}
 	}
 
 	s.PrintSecret(newSec, false)

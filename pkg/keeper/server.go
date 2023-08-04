@@ -41,7 +41,7 @@ func StartServer(kpr secrets.Keeper) error {
 		_ = os.Remove(sockName)
 	}()
 
-	gracefulQuitter := make(chan os.Signal)
+	gracefulQuitter := make(chan os.Signal, 3)
 	signal.Notify(gracefulQuitter, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
 
 	pidFile := makePidFile()

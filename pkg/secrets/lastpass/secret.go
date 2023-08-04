@@ -127,13 +127,6 @@ func (s *Secret) SetField(name, value string) {
 	s.notes[name] = value
 }
 
-func (s *Secret) makeNotes() string {
-	if s.parsed {
-		return writeNotes(s.typ, s.notes)
-	}
-	return s.Account.Notes
-}
-
 func (s *Secret) LastModified() time.Time {
 	lmSeconds, _ := strconv.ParseInt(s.Account.LastModifiedGMT, 10, 64)
 	return time.Unix(lmSeconds, 0)

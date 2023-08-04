@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -35,14 +36,14 @@ func Build(
 		masterPassword := GetMasterPassword(name)
 		kp, err := keepass.NewKeepass(kc.Keepass.Path, masterPassword)
 		if err != nil {
-			return nil, fmt.Errorf("unable to configure Keepass client %q: %v", name, err)
+			return nil, fmt.Errorf("unable to configure Keepass client %q: %w", name, err)
 		}
 		return kp, nil
 	case config.KTLastPass:
 		masterPassword := GetMasterPassword(name)
 		lp, err := lastpass.NewLastPass(ctx, kc.LastPass.Username, masterPassword)
 		if err != nil {
-			return nil, fmt.Errorf("unable to configure LastPass client %q: %v", name, err)
+			return nil, fmt.Errorf("unable to configure LastPass client %q: %w", name, err)
 		}
 		return lp, nil
 	case config.KTLowSecurity:
@@ -56,7 +57,7 @@ func Build(
 	case config.KTRouter:
 		defaultKeeper, err := Build(ctx, kc.Router.DefaultRoute, c)
 		if err != nil {
-			return nil, fmt.Errorf("unable to build the secret keeper named %q for the default route of router named %q: %v", kc.Router.DefaultRoute, name, err)
+			return nil, fmt.Errorf("unable to build the secret keeper named %q for the default route of router named %q: %w", kc.Router.DefaultRoute, name, err)
 		}
 
 		r := router.NewRouter(defaultKeeper)
@@ -64,13 +65,13 @@ func Build(
 			keeper, err := Build(ctx, rt.Keeper, c)
 			if err != nil {
 				locs := strings.Join(rt.Locations, ",")
-				return nil, fmt.Errorf("unable to build the secret keeper named %q for the route to %q of router named %q: %v", rt.Keeper, locs, name, err)
+				return nil, fmt.Errorf("unable to build the secret keeper named %q for the route to %q of router named %q: %w", rt.Keeper, locs, name, err)
 			}
 
 			err = r.AddKeeper(keeper, rt.Locations...)
 			if err != nil {
 				locs := strings.Join(rt.Locations, ",")
-				return nil, fmt.Errorf("unable to add a route for the secret keeper named %q for the route to %q of router named %q: %v", rt.Keeper, locs, name, err)
+				return nil, fmt.Errorf("unable to add a route for the secret keeper named %q for the route to %q of router named %q: %w", rt.Keeper, locs, name, err)
 			}
 		}
 		return r, nil
@@ -80,10 +81,14 @@ func Build(
 			var err error
 			keepers[i], err = Build(ctx, k, c)
 			if err != nil {
-				return nil, fmt.Errorf("unable to build the secret keeper named %q for the seq keeper named %q: %v", k, name, err)
+				return nil, fmt.Errorf("unable to build the secret keeper named %q for the seq keeper named %q: %w", k, name, err)
 			}
 		}
 		return seq.NewSeq(keepers...)
+	case config.KTNone:
+		return nil, errors.New("illegal use of none")
+	case config.KTConflict:
+		return nil, errors.New("illegal use of conflict")
 	}
 	return nil, fmt.Errorf("unknown secret keeper type for keeper named %q", name)
 }
