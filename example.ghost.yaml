@@ -1,3 +1,4 @@
+master: local
 keepers:
   local:
     router:

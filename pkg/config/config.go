@@ -13,7 +13,8 @@ const configFile = ".ghost.yaml"
 var cfgInstance *Config
 
 type Config struct {
-	Keepers map[string]*KeeperConfig `yaml:"keepers"`
+	MasterKeeper string                   `yaml:"master"`
+	Keepers      map[string]*KeeperConfig `yaml:"keepers"`
 }
 
 func (c *Config) Check() error {
@@ -36,6 +37,10 @@ func (c *Config) Check() error {
 				}
 			}
 		}
+	}
+
+	if _, hasMasterKeeper := c.Keepers[c.MasterKeeper]; c.MasterKeeper != "" && !hasMasterKeeper {
+		errs.Append(fmt.Errorf("master keeper %q has no definition", c.MasterKeeper))
 	}
 
 	return errs.Return()
