@@ -8,6 +8,7 @@ import (
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/keeper"
+	"github.com/zostay/ghost/pkg/secrets"
 )
 
 var (
@@ -59,10 +60,22 @@ func RunGet(cmd *cobra.Command, args []string) {
 		s.Logger.Panic(err)
 	}
 
-	sec, err := kpr.GetSecret(ctx, args[0])
-	if err != nil {
-		s.Logger.Panic(err)
+	secs := []secrets.Secret{}
+	if id != "" {
+		sec, err := kpr.GetSecret(ctx, id)
+		if err != nil {
+			s.Logger.Panic(err)
+		}
+
+		secs = append(secs, sec)
+	} else {
+		secs, err = kpr.GetSecretsByName(ctx, name)
+		if err != nil {
+			s.Logger.Panic(err)
+		}
 	}
 
-	s.PrintSecret(sec, showPassword, flds...)
+	for _, sec := range secs {
+		s.PrintSecret(sec, showPassword, flds...)
+	}
 }

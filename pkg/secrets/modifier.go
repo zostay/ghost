@@ -182,7 +182,7 @@ func SetUsername(secret Secret, username string) Secret {
 	return &modifier{base: secret, username: &username}
 }
 
-func SetSecret(secret Secret, secretValue string) Secret {
+func SetPassword(secret Secret, secretValue string) Secret {
 	if mod, isMod := secret.(SettablePassword); isMod {
 		mod.SetPassword(secretValue)
 		return secret
