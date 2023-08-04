@@ -49,6 +49,17 @@ func (kt KeeperType) String() string {
 	}
 }
 
+var KeeperTypes = []KeeperType{
+	KTLastPass,
+	KTKeepass,
+	KTLowSecurity,
+	KTGRPC,
+	KTKeyring,
+	KTMemory,
+	KTRouter,
+	KTSeq,
+}
+
 type KeeperConfig struct {
 	LastPass LastPassConfig    `yaml:"lastpass,omitempty"`
 	Keepass  KeepassConfig     `yaml:"keepass,omitempty"`
@@ -80,8 +91,8 @@ func (kc *KeeperConfig) Check(c *Config) error {
 		// no additional validation rules...
 
 	case KTGRPC:
-		if kc.GRPC.Listener != "sock" {
-			errs.Append(fmt.Errorf("grpc listener %q is not supported", kc.GRPC.Listener))
+		if kc.GRPC.Listener != "unix" {
+			errs.Append(fmt.Errorf("grpc listener type %q is not supported", kc.GRPC.Listener))
 		}
 
 	case KTKeyring:
