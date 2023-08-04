@@ -13,12 +13,15 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(configCmd)
-	rootCmd.AddCommand(deleteCmd)
-	rootCmd.AddCommand(getCmd)
-	rootCmd.AddCommand(serviceCmd)
-	rootCmd.AddCommand(setCmd)
-	rootCmd.AddCommand(syncCmd)
+	rootCmd.AddCommand(
+		configCmd,
+		deleteCmd,
+		getCmd,
+		listCmd,
+		serviceCmd,
+		setCmd,
+		syncCmd,
+	)
 
 	rootCmd.PersistentFlags().StringVarP(&s.ConfigFile, "config", "c", "", "path to the ghost configuration file")
 }
