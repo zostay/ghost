@@ -9,6 +9,7 @@ import (
 	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/secrets"
 	"github.com/zostay/ghost/pkg/secrets/http"
+	"github.com/zostay/ghost/pkg/secrets/human"
 	"github.com/zostay/ghost/pkg/secrets/keepass"
 	"github.com/zostay/ghost/pkg/secrets/keyring"
 	"github.com/zostay/ghost/pkg/secrets/lastpass"
@@ -54,6 +55,16 @@ func Build(
 		return keyring.New(kc.Keyring.ServiceName), nil
 	case config.KTMemory:
 		return secrets.NewInternal()
+	case config.KTHuman:
+		kpr := human.New()
+		for _, q := range kc.Human.Questions {
+			kpr.AddQuestion(
+				q.ID,
+				q.AskFor,
+				q.Presets,
+			)
+		}
+		return kpr, nil
 	case config.KTRouter:
 		defaultKeeper, err := Build(ctx, kc.Router.DefaultRoute, c)
 		if err != nil {

@@ -22,6 +22,7 @@ func init() {
 		set.GRPCCmd,
 		set.KeyringCmd,
 		set.MemoryCmd,
+		set.HumanCmd,
 
 		set.RouterCmd,
 		set.SeqCmd,

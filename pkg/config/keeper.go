@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 
+	"github.com/zostay/go-std/maps"
 	"github.com/zostay/go-std/set"
 	"github.com/zostay/go-std/slices"
 )
@@ -18,6 +19,7 @@ const (
 	KTGRPC
 	KTKeyring
 	KTMemory
+	KTHuman
 	KTRouter
 	KTSeq
 )
@@ -40,6 +42,8 @@ func (kt KeeperType) String() string {
 		return "keyring"
 	case KTMemory:
 		return "memory"
+	case KTHuman:
+		return "human"
 	case KTRouter:
 		return "router"
 	case KTSeq:
@@ -56,6 +60,7 @@ var KeeperTypes = []KeeperType{
 	KTGRPC,
 	KTKeyring,
 	KTMemory,
+	KTHuman,
 	KTRouter,
 	KTSeq,
 }
@@ -67,6 +72,7 @@ type KeeperConfig struct {
 	GRPC     GRPCConfig        `yaml:"grpc,omitempty"`
 	Keyring  KeyringConfig     `yaml:"keyring,omitempty"`
 	Memory   InternalConfig    `yaml:"memory,omitempty"`
+	Human    HumanConfig       `yaml:"human,omitempty"`
 	Router   RouterConfig      `yaml:"router,omitempty"`
 	Seq      SeqConfig         `yaml:"seq,omitempty"`
 }
@@ -100,6 +106,17 @@ func (kc *KeeperConfig) Check(c *Config) error {
 
 	case KTMemory:
 		// no additional validation rules...
+
+	case KTHuman:
+		for _, q := range kc.Human.Questions {
+			flds := set.New[string](maps.Keys(q.Presets)...)
+			for _, f := range q.AskFor {
+				if !flds.Contains(f) {
+					errs.Append(fmt.Errorf("human question configuration already contains field named %q", f))
+				}
+				flds.Insert(f)
+			}
+		}
 
 	case KTRouter:
 		if kc.Router.DefaultRoute != "" {
@@ -173,6 +190,13 @@ func (kc *KeeperConfig) Type() KeeperType {
 		t = KTMemory
 	}
 
+	if len(kc.Human.Questions) > 0 {
+		if t != KTNone {
+			return KTConflict
+		}
+		t = KTHuman
+	}
+
 	if len(kc.Router.Routes) > 0 || kc.Router.DefaultRoute != "" {
 		if t != KTNone {
 			return KTConflict
@@ -212,6 +236,45 @@ type KeyringConfig struct {
 
 type InternalConfig struct {
 	Enable bool `yaml:"enable"`
+}
+
+type HumanQuestionConfig struct {
+	ID      string            `yaml:"ID"`
+	Presets map[string]string `yaml:"presets"`
+	AskFor  []string          `yaml:"ask_for"`
+}
+
+type HumanConfig struct {
+	Questions []HumanQuestionConfig `yaml:"questions"`
+}
+
+func (hc *HumanConfig) Set(
+	id string,
+	presets map[string]string,
+	askFor []string,
+) {
+	if hc.Questions == nil {
+		hc.Questions = []HumanQuestionConfig{}
+	}
+
+	hc.Questions = append(hc.Questions, HumanQuestionConfig{
+		ID:      id,
+		Presets: presets,
+		AskFor:  askFor,
+	})
+}
+
+func (hc *HumanConfig) Remove(id string) {
+	if hc.Questions == nil {
+		return
+	}
+
+	i := slices.FirstIndex(hc.Questions, func(q HumanQuestionConfig) bool {
+		return q.ID == id
+	})
+	if i >= 0 {
+		hc.Questions = slices.Delete(hc.Questions, i)
+	}
 }
 
 type RouterConfig struct {

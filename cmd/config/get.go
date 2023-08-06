@@ -47,6 +47,22 @@ func PrintKeeper(keeper *config.KeeperConfig, i int) {
 		s.Logger.Printf("%skeyring: %s", indent, keeper.Keyring.ServiceName)
 	case config.KTMemory:
 		s.Logger.Printf("%stype: memory", indent)
+	case config.KTHuman:
+		s.Logger.Printf("%stype: human", indent)
+		s.Logger.Printf("%squestions:", indent)
+		for _, q := range keeper.Human.Questions {
+			indentP1 := strings.Repeat(" ", (i+1)*2)
+			indentP2 := strings.Repeat(" ", (i+2)*2)
+			s.Logger.Printf("%sid: %s", indentP1, q.ID)
+			s.Logger.Printf("%spresets:", indentP1)
+			for k, v := range q.Presets {
+				s.Logger.Printf("%s%s = %s", indentP2, k, v)
+			}
+			s.Logger.Printf("%sasking for:", indentP1)
+			for _, k := range q.AskFor {
+				s.Logger.Printf("%s%s", indentP2, k)
+			}
+		}
 	case config.KTRouter:
 		s.Logger.Printf("%stype: router", indent)
 		s.Logger.Printf("%sdefault route: %s", indent, keeper.Router.DefaultRoute)
