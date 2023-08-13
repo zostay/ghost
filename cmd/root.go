@@ -20,6 +20,7 @@ func init() {
 	rootCmd.AddCommand(
 		configCmd,
 		deleteCmd,
+		enforcePolicyCmd,
 		getCmd,
 		listCmd,
 		serviceCmd,

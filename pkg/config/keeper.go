@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/zostay/go-std/maps"
 	"github.com/zostay/go-std/set"
@@ -20,6 +21,7 @@ const (
 	KTKeyring
 	KTMemory
 	KTHuman
+	KTPolicy
 	KTRouter
 	KTSeq
 )
@@ -44,6 +46,8 @@ func (kt KeeperType) String() string {
 		return "memory"
 	case KTHuman:
 		return "human"
+	case KTPolicy:
+		return "policy"
 	case KTRouter:
 		return "router"
 	case KTSeq:
@@ -61,6 +65,7 @@ var KeeperTypes = []KeeperType{
 	KTKeyring,
 	KTMemory,
 	KTHuman,
+	KTPolicy,
 	KTRouter,
 	KTSeq,
 }
@@ -73,6 +78,7 @@ type KeeperConfig struct {
 	Keyring  KeyringConfig     `yaml:"keyring,omitempty"`
 	Memory   InternalConfig    `yaml:"memory,omitempty"`
 	Human    HumanConfig       `yaml:"human,omitempty"`
+	Policy   PolicyConfig      `yaml:"policy,omitempty"`
 	Router   RouterConfig      `yaml:"router,omitempty"`
 	Seq      SeqConfig         `yaml:"seq,omitempty"`
 }
@@ -115,6 +121,25 @@ func (kc *KeeperConfig) Check(c *Config) error {
 					errs.Append(fmt.Errorf("human question configuration already contains field named %q", f))
 				}
 				flds.Insert(f)
+			}
+		}
+
+	case KTPolicy:
+		if !ValidAcceptance(kc.Policy.DefaultRule.Acceptance, false) {
+			errs.Append(fmt.Errorf("policy default rule acceptance %q must be allow or deny", kc.Policy.DefaultRule.Acceptance))
+		}
+
+		for _, r := range kc.Policy.Rules {
+			if !ValidAcceptance(r.Acceptance, true) {
+				errs.Append(fmt.Errorf("policy rule acceptance %q must be allow or deny or inherit", r.Acceptance))
+			}
+
+			if ValidAcceptance(r.Acceptance, false) && r.Lifetime > 0 {
+				errs.Append(fmt.Errorf("policy rule with both lifteime and acceptance settings is not permitted"))
+			}
+
+			if !ValidAcceptance(r.Acceptance, false) && r.Lifetime == 0 {
+				errs.Append(fmt.Errorf("policy rule with neither lifetime nor acceptance settings is not permitted"))
 			}
 		}
 
@@ -197,6 +222,13 @@ func (kc *KeeperConfig) Type() KeeperType {
 		t = KTHuman
 	}
 
+	if kc.Policy.DefaultRule.Acceptance != "" || kc.Policy.DefaultRule.Lifetime > 0 || len(kc.Policy.Rules) > 0 {
+		if t != KTNone {
+			return KTConflict
+		}
+		t = KTPolicy
+	}
+
 	if len(kc.Router.Routes) > 0 || kc.Router.DefaultRoute != "" {
 		if t != KTNone {
 			return KTConflict
@@ -275,6 +307,37 @@ func (hc *HumanConfig) Remove(id string) {
 	if i >= 0 {
 		hc.Questions = slices.Delete(hc.Questions, i)
 	}
+}
+
+func ValidAcceptance(a string, inheritAllowed bool) bool {
+	if inheritAllowed && a == "inherit" {
+		return true
+	}
+	return a == "allow" || a == "deny"
+}
+
+type PolicyRuleConfig struct {
+	Lifetime   time.Duration `yaml:"lifetime"`
+	Acceptance string        `yaml:"acceptance"`
+}
+
+type PolicyMatchConfig struct {
+	LocationMatch string `yaml:"location"`
+	NameMatch     string `yaml:"name"`
+	UsernameMatch string `yaml:"username"`
+	TypeMatch     string `yaml:"type"`
+	UrlMatch      string `yaml:"url"`
+}
+
+type PolicyMatchRuleConfig struct {
+	PolicyMatchConfig `yaml:",inline"`
+	PolicyRuleConfig  `yaml:",inline"`
+}
+
+type PolicyConfig struct {
+	Keeper      string                  `yaml:"keeper"`
+	DefaultRule PolicyRuleConfig        `yaml:",inline"`
+	Rules       []PolicyMatchRuleConfig `yaml:"rules"`
 }
 
 type RouterConfig struct {

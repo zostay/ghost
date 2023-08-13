@@ -24,6 +24,7 @@ func init() {
 		set.MemoryCmd,
 		set.HumanCmd,
 
+		set.PolicyCmd,
 		set.RouterCmd,
 		set.SeqCmd,
 	)

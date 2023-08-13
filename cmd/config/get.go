@@ -63,6 +63,23 @@ func PrintKeeper(keeper *config.KeeperConfig, i int) {
 				s.Logger.Printf("%s%s", indentP2, k)
 			}
 		}
+	case config.KTPolicy:
+		s.Logger.Printf("%stype: policy", indent)
+		s.Logger.Printf("%skeeper: %s", indent, keeper.Policy.Keeper)
+		s.Logger.Printf("%sdefault rule:", indent)
+		s.Logger.Printf("%s  acceptance: %s", indent, keeper.Policy.DefaultRule.Acceptance)
+		if keeper.Policy.DefaultRule.Lifetime >= 0 {
+			s.Logger.Printf("%s  liftime: %v", indent, keeper.Policy.DefaultRule.Lifetime)
+		}
+		s.Logger.Printf("%srules:", indent)
+		for _, r := range keeper.Policy.Rules {
+			if config.ValidAcceptance(r.Acceptance, false) {
+				s.Logger.Printf("%s - acceptance: %s", indent, r.Acceptance)
+			}
+			if r.Lifetime > 0 {
+				s.Logger.Printf("%s - lifetime: %v", indent, r.Lifetime)
+			}
+		}
 	case config.KTRouter:
 		s.Logger.Printf("%stype: router", indent)
 		s.Logger.Printf("%sdefault route: %s", indent, keeper.Router.DefaultRoute)

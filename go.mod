@@ -11,7 +11,7 @@ require (
 	github.com/tobischo/gokeepasslib/v3 v3.5.1
 	github.com/zalando/go-keyring v0.2.3
 	github.com/zostay/fssafe v0.0.1
-	github.com/zostay/go-std v0.5.0
+	github.com/zostay/go-std v0.6.0
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -23,6 +23,7 @@ require (
 	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gopasspw/pinentry v0.0.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
