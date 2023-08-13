@@ -3,6 +3,7 @@ package policy
 import (
 	"context"
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/zostay/ghost/pkg/secrets"
@@ -33,16 +34,31 @@ func (p *Policy) EnforceGlobally(ctx context.Context) error {
 	out := make(chan secrets.Secret)
 	defer close(out)
 
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		for sec := range out {
-			_ = p.EnforceOne(ctx, sec)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				wg.Add(1)
+				go func(secret secrets.Secret) {
+					defer wg.Done()
+					_ = p.EnforceOne(ctx, secret)
+				}(sec)
+			}
 		}
 	}()
 
-	return secrets.ForEach(ctx, p.Keeper, func(sec secrets.Secret) error {
+	err := secrets.ForEach(ctx, p.Keeper, func(sec secrets.Secret) error {
 		out <- sec
 		return ctx.Err()
 	})
+
+	wg.Wait()
+	return err
 }
 
 // EnforceOne enforces the lifetime policy against a single secret.

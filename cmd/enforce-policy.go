@@ -21,9 +21,13 @@ var enforcePolicyCmd = &cobra.Command{
 func RunEnforcePolicy(cmd *cobra.Command, args []string) {
 	keeperName := args[0]
 	c := config.Instance()
-	_, hasKeeper := c.Keepers[keeperName]
+	cfg, hasKeeper := c.Keepers[keeperName]
 	if !hasKeeper {
 		s.Logger.Panicf("Keeper %q is not configured.", keeperName)
+	}
+
+	if cfg.Type() != config.KTPolicy {
+		s.Logger.Panicf("Keeper %q is not a policy keeper.", keeperName)
 	}
 
 	ctx := context.Background()
@@ -32,12 +36,9 @@ func RunEnforcePolicy(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("Failed to load keeper %q: %s", keeperName, err)
 	}
 
-	if p, isPolicy := kpr.(*policy.Policy); isPolicy {
-		err := p.EnforceGlobally(ctx)
-		if err != nil {
-			s.Logger.Panicf("Failed to enforce policy: %s", err)
-		}
-	} else {
-		s.Logger.Panicf("Keeper %q is not a policy keeper.", keeperName)
+	p := kpr.(*policy.Policy)
+	err = p.EnforceGlobally(ctx)
+	if err != nil {
+		s.Logger.Panicf("Failed to enforce policy: %s", err)
 	}
 }
