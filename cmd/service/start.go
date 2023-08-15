@@ -73,24 +73,38 @@ func startPolicyEnforcement(ctx context.Context, c *config.Config) {
 			s.Logger.Panicf("keeper %q is not a policy keeper", name)
 		}
 
-		go func() {
-			kpr, err := keeper.Build(ctx, name, c)
-			if err != nil {
-				s.Logger.Panicf("failed to configure policy keeper %q: %v", name, err)
-			}
-
-			p := kpr.(*policy.Policy)
-			for {
-				ctx, cancel := context.WithTimeout(ctx, enforcementPeriod-1*time.Second)
-				defer cancel()
-				go func() {
-					err := p.EnforceGlobally(ctx)
-					if err != nil {
-						s.Logger.Printf("failed to enforce policy %q: %v", name, err)
-					}
-				}()
-				<-time.After(enforcementPeriod)
-			}
-		}()
+		go enforcePolicy(ctx, name, c)
 	}
+}
+
+func enforcePolicy(
+	ctx context.Context,
+	name string,
+	c *config.Config,
+) {
+	kpr, err := keeper.Build(ctx, name, c)
+	if err != nil {
+		s.Logger.Panicf("failed to configure policy keeper %q: %v", name, err)
+	}
+
+	p := kpr.(*policy.Policy)
+	for {
+		enforcePolicyThenWait(ctx, name, p)
+	}
+}
+
+func enforcePolicyThenWait(
+	ctx context.Context,
+	name string,
+	p *policy.Policy,
+) {
+	ctx, cancel := context.WithTimeout(ctx, enforcementPeriod-1*time.Second)
+	defer cancel()
+	go func() {
+		err := p.EnforceGlobally(ctx)
+		if err != nil {
+			s.Logger.Printf("failed to enforce policy %q: %v", name, err)
+		}
+	}()
+	<-time.After(enforcementPeriod)
 }

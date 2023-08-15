@@ -17,7 +17,7 @@ type Policy struct {
 
 var _ secrets.Keeper = &Policy{}
 
-func New(kpr secrets.Keeper, globalEnforcement bool) *Policy {
+func New(kpr secrets.Keeper) *Policy {
 	return &Policy{
 		Keeper: kpr,
 		defaultRule: &Rule{

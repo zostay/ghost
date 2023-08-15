@@ -69,7 +69,7 @@ func PrintKeeper(keeper *config.KeeperConfig, i int) {
 		s.Logger.Printf("%sdefault rule:", indent)
 		s.Logger.Printf("%s  acceptance: %s", indent, keeper.Policy.DefaultRule.Acceptance)
 		if keeper.Policy.DefaultRule.Lifetime >= 0 {
-			s.Logger.Printf("%s  liftime: %v", indent, keeper.Policy.DefaultRule.Lifetime)
+			s.Logger.Printf("%s  lifetime: %v", indent, keeper.Policy.DefaultRule.Lifetime)
 		}
 		s.Logger.Printf("%srules:", indent)
 		for _, r := range keeper.Policy.Rules {

@@ -45,8 +45,9 @@ linters-settings:
           - github.com/ansd/lastpass-go
           - github.com/zalando/go-keyring
           - github.com/tobischo/gokeepasslib
-          - github.com/gopasspw/gopass
+          - github.com/gopasspw/pinentry
           - github.com/golang
+          - github.com/gobwas/glob
 
       tests:
         files:

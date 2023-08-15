@@ -14,6 +14,7 @@ import (
 	"github.com/zostay/ghost/pkg/secrets/keyring"
 	"github.com/zostay/ghost/pkg/secrets/lastpass"
 	"github.com/zostay/ghost/pkg/secrets/low"
+	"github.com/zostay/ghost/pkg/secrets/policy"
 	"github.com/zostay/ghost/pkg/secrets/router"
 	"github.com/zostay/ghost/pkg/secrets/seq"
 )
@@ -65,6 +66,14 @@ func Build(
 			)
 		}
 		return kpr, nil
+	case config.KTPolicy:
+		nested, err := Build(ctx, kc.Policy.Keeper, c)
+		if err != nil {
+			return nil, fmt.Errorf("unable to build the secret keeper named %q for the policy keeper named %q: %w", kc.Policy.Keeper, name, err)
+		}
+
+		return policy.New(nested), nil
+
 	case config.KTRouter:
 		defaultKeeper, err := Build(ctx, kc.Router.DefaultRoute, c)
 		if err != nil {
