@@ -26,12 +26,12 @@ func RunEnforcePolicy(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("Keeper %q is not configured.", keeperName)
 	}
 
-	if cfg.Type() != config.KTPolicy {
+	if cfg.Type() != policy.ConfigType {
 		s.Logger.Panicf("Keeper %q is not a policy keeper.", keeperName)
 	}
 
-	ctx := context.Background()
-	kpr, err := keeper.Build(ctx, keeperName, c)
+	ctx := keeper.WithBuilder(context.Background(), c)
+	kpr, err := keeper.Build(ctx, keeperName)
 	if err != nil {
 		s.Logger.Panicf("Failed to load keeper %q: %s", keeperName, err)
 	}

@@ -30,15 +30,14 @@ func RunSync(cmd *cobra.Command, args []string) {
 	fromKeeper := args[0]
 	toKeeper := args[1]
 
-	ctx := context.Background()
 	c := config.Instance()
-
-	fromKpr, err := keeper.Build(ctx, fromKeeper, c)
+	ctx := keeper.WithBuilder(context.Background(), c)
+	fromKpr, err := keeper.Build(ctx, fromKeeper)
 	if err != nil {
 		s.Logger.Panic(err)
 	}
 
-	toKpr, err := keeper.Build(ctx, toKeeper, c)
+	toKpr, err := keeper.Build(ctx, toKeeper)
 	if err != nil {
 		s.Logger.Panic(err)
 	}

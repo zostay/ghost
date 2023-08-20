@@ -2,6 +2,8 @@ package set
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/zostay/ghost/pkg/secrets/memory"
 )
 
 var MemoryCmd = &cobra.Command{
@@ -13,5 +15,7 @@ var MemoryCmd = &cobra.Command{
 }
 
 func PreRunSetMemoryKeeperConfig(cmd *cobra.Command, args []string) {
-	Replacement.Memory.Enable = true
+	Replacement = map[string]any{
+		"type": memory.ConfigType,
+	}
 }

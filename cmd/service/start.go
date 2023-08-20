@@ -44,16 +44,15 @@ func RunStartService(cmd *cobra.Command, args []string) {
 		s.Logger.Panic("no master keeper set")
 	}
 
-	ctx := context.Background()
-
-	kpr, err := keeper.Build(ctx, c.MasterKeeper, c)
+	ctx := keeper.WithBuilder(context.Background(), c)
+	kpr, err := keeper.Build(ctx, c.MasterKeeper)
 	if err != nil {
 		s.Logger.Panicf("failed to configure master keeper %q: %v", c.MasterKeeper, err)
 	}
 
 	if enforceAllPolicies {
 		for name, cfg := range c.Keepers {
-			if cfg.Type() == config.KTPolicy {
+			if cfg.Type() == policy.ConfigType {
 				enforcePolicies = append(enforcePolicies, name)
 			}
 		}
@@ -61,7 +60,7 @@ func RunStartService(cmd *cobra.Command, args []string) {
 
 	startPolicyEnforcement(ctx, c)
 
-	err = keeper.StartServer(kpr)
+	err = keeper.StartServer(s.Logger, kpr)
 	if err != nil {
 		s.Logger.Panic(err)
 	}
@@ -69,20 +68,19 @@ func RunStartService(cmd *cobra.Command, args []string) {
 
 func startPolicyEnforcement(ctx context.Context, c *config.Config) {
 	for _, name := range enforcePolicies {
-		if c.Keepers[name].Type() != config.KTPolicy {
+		if c.Keepers[name].Type() != policy.ConfigType {
 			s.Logger.Panicf("keeper %q is not a policy keeper", name)
 		}
 
-		go enforcePolicy(ctx, name, c)
+		go enforcePolicy(ctx, name)
 	}
 }
 
 func enforcePolicy(
 	ctx context.Context,
 	name string,
-	c *config.Config,
 ) {
-	kpr, err := keeper.Build(ctx, name, c)
+	kpr, err := keeper.Build(ctx, name)
 	if err != nil {
 		s.Logger.Panicf("failed to configure policy keeper %q: %v", name, err)
 	}

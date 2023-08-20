@@ -1,4 +1,4 @@
-package low
+package memory
 
 import (
 	"context"
@@ -8,19 +8,19 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
-const ConfigType = "low"
+const ConfigType = "memory"
 
-type Config struct {
-	Path string `mapstructure:"path" yaml:"path"`
-}
+// Config is the configuration required for the secret store.
+type Config struct{}
 
+// Builder constructs a new internal secret store.
 func Builder(_ context.Context, c any) (secrets.Keeper, error) {
-	cfg, isLow := c.(*Config)
-	if !isLow {
+	_, isInternal := c.(*Config)
+	if !isInternal {
 		return nil, plugin.ErrConfig
 	}
 
-	return NewLowSecurity(cfg.Path), nil
+	return New()
 }
 
 func init() {

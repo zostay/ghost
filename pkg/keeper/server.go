@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"os/signal"
@@ -11,7 +12,6 @@ import (
 
 	"google.golang.org/grpc"
 
-	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/secrets"
 	"github.com/zostay/ghost/pkg/secrets/http"
 )
@@ -30,7 +30,7 @@ func makeRunName() string {
 	return filepath.Join(tmp, fmt.Sprintf("%s.%d.run", serviceName, uid))
 }
 
-func StartServer(kpr secrets.Keeper) error {
+func StartServer(logger *log.Logger, kpr secrets.Keeper) error {
 	sockName := makeSocketName()
 	sock, err := net.Listen("unix", sockName)
 	if err != nil {
@@ -44,7 +44,7 @@ func StartServer(kpr secrets.Keeper) error {
 	gracefulQuitter := make(chan os.Signal, 3)
 	signal.Notify(gracefulQuitter, syscall.SIGINT, syscall.SIGQUIT, syscall.SIGHUP)
 
-	pidFile := makePidFile()
+	pidFile := makePidFile(logger)
 	defer func() { _ = os.Remove(pidFile) }()
 
 	svr := http.NewServer(kpr)
@@ -59,11 +59,11 @@ func StartServer(kpr secrets.Keeper) error {
 	return nil
 }
 
-func makePidFile() string {
+func makePidFile(logger *log.Logger) string {
 	name := makeRunName()
 	pid := fmt.Sprintf("%d", os.Getpid())
 	err := os.WriteFile(name, []byte(pid), 0o600)
-	s.Logger.Printf("failed to write pid file %q: %v", name, err)
+	logger.Printf("failed to write pid file %q: %v", name, err)
 	return name
 }
 

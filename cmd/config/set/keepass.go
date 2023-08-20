@@ -2,6 +2,8 @@ package set
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/zostay/ghost/pkg/secrets/keepass"
 )
 
 var (
@@ -21,5 +23,7 @@ func init() {
 }
 
 func PreRunSetKeepassKeeperConfig(cmd *cobra.Command, args []string) {
-	Replacement.Keepass.Path = keepassPath
+	Replacement = map[string]any{
+		"type": keepass.ConfigType,
+	}
 }

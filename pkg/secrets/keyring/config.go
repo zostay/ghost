@@ -1,4 +1,4 @@
-package low
+package keyring
 
 import (
 	"context"
@@ -8,19 +8,19 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
-const ConfigType = "low"
+const ConfigType = "keyring"
 
 type Config struct {
-	Path string `mapstructure:"path" yaml:"path"`
+	ServiceName string `mapstructure:"service_name" yaml:"service_name"`
 }
 
 func Builder(_ context.Context, c any) (secrets.Keeper, error) {
-	cfg, isLow := c.(*Config)
-	if !isLow {
+	cfg, isKeyring := c.(*Config)
+	if !isKeyring {
 		return nil, plugin.ErrConfig
 	}
 
-	return NewLowSecurity(cfg.Path), nil
+	return New(cfg.ServiceName), nil
 }
 
 func init() {

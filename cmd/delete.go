@@ -18,9 +18,9 @@ var deleteCmd = &cobra.Command{
 }
 
 func init() {
-	getCmd.Flags().StringVar(&keeperName, "keeper", "", "The name of the secret keeper to use")
-	getCmd.Flags().StringVar(&id, "id", "", "The ID of the secret to get")
-	getCmd.Flags().StringVar(&name, "name", "", "The name of the secret to get")
+	deleteCmd.Flags().StringVar(&keeperName, "keeper", "", "The name of the secret keeper to use")
+	deleteCmd.Flags().StringVar(&id, "id", "", "The ID of the secret to get")
+	deleteCmd.Flags().StringVar(&name, "name", "", "The name of the secret to get")
 }
 
 func RunDelete(cmd *cobra.Command, args []string) {
@@ -45,8 +45,8 @@ func RunDelete(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("No keeper named %q.", keeperName)
 	}
 
-	ctx := context.Background()
-	kpr, err := keeper.Build(ctx, keeperName, c)
+	ctx := keeper.WithBuilder(context.Background(), c)
+	kpr, err := keeper.Build(ctx, keeperName)
 	if err != nil {
 		s.Logger.Panic(err)
 	}

@@ -2,6 +2,9 @@ package set
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/secrets/lastpass"
 )
 
 var (
@@ -21,5 +24,18 @@ func init() {
 }
 
 func PreRunSetLastPassKeeperConfig(cmd *cobra.Command, args []string) {
-	Replacement.LastPass.Username = lastPassUsername
+	keeperName := args[0]
+	c := config.Instance()
+	kc := c.Keepers[keeperName]
+	if kc == nil {
+		kc = map[string]any{
+			"type": lastpass.ConfigType,
+		}
+	}
+
+	if lastPassUsername != "" {
+		kc["username"] = lastPassUsername
+	}
+
+	Replacement = kc
 }

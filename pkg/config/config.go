@@ -6,44 +6,28 @@ import (
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
+
+	"github.com/zostay/ghost/pkg/plugin"
 )
 
 const configFile = ".ghost.yaml"
 
 var cfgInstance *Config
 
-type Config struct {
-	MasterKeeper string                   `yaml:"master"`
-	Keepers      map[string]*KeeperConfig `yaml:"keepers"`
+type KeeperConfig map[string]any
+
+func (c KeeperConfig) Type() string {
+	if typ, hasTyp := c["type"].(string); hasTyp {
+		if _, isRegistered := plugin.Get(typ); isRegistered {
+			return typ
+		}
+	}
+	return ""
 }
 
-func (c *Config) Check() error {
-	errs := NewValidationError()
-
-	for k, kc := range c.Keepers {
-		if kc == nil {
-			errs.Append(fmt.Errorf("keeper %q has no definition", k))
-			continue
-		}
-
-		err := kc.Check(c)
-		Prefix(err, fmt.Sprintf("keeper %q", k))
-		errs.Append(err)
-
-		if kc.Type() == KTSeq {
-			for _, subk := range kc.Seq.Keepers {
-				if k == subk {
-					errs.Append(fmt.Errorf("seq keeper %q refers to itself", k))
-				}
-			}
-		}
-	}
-
-	if _, hasMasterKeeper := c.Keepers[c.MasterKeeper]; c.MasterKeeper != "" && !hasMasterKeeper {
-		errs.Append(fmt.Errorf("master keeper %q has no definition", c.MasterKeeper))
-	}
-
-	return errs.Return()
+type Config struct {
+	MasterKeeper string                  `yaml:"master"`
+	Keepers      map[string]KeeperConfig `yaml:"keepers"`
 }
 
 func configPath(requestedPath string) (string, error) {
@@ -66,7 +50,7 @@ func configPath(requestedPath string) (string, error) {
 
 func New() *Config {
 	return &Config{
-		Keepers: map[string]*KeeperConfig{},
+		Keepers: map[string]KeeperConfig{},
 	}
 }
 

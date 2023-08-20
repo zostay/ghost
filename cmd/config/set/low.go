@@ -2,6 +2,9 @@ package set
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/secrets/low"
 )
 
 var (
@@ -21,5 +24,18 @@ func init() {
 }
 
 func PreRunSetLowKeeperConfig(cmd *cobra.Command, args []string) {
-	Replacement.Low.Path = lowPath
+	keeperName := args[0]
+	c := config.Instance()
+	kc := c.Keepers[keeperName]
+	if kc == nil {
+		kc = map[string]any{
+			"type": low.ConfigType,
+		}
+	}
+
+	if lowPath != "" {
+		kc["path"] = lowPath
+	}
+
+	Replacement = kc
 }

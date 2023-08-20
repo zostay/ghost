@@ -1,6 +1,11 @@
 package set
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+
+	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/secrets/keyring"
+)
 
 var (
 	KeyringCmd = &cobra.Command{
@@ -19,5 +24,18 @@ func init() {
 }
 
 func PreRunSetKeyringKeeperConfig(cmd *cobra.Command, args []string) {
-	Replacement.Keyring.ServiceName = service
+	keeperName := args[0]
+	c := config.Instance()
+	kc := c.Keepers[keeperName]
+	if kc == nil {
+		kc = map[string]any{
+			"type": keyring.ConfigType,
+		}
+	}
+
+	if service != "" {
+		kc["service_name"] = service
+	}
+
+	Replacement = kc
 }

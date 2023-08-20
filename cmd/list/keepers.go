@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 
 	s "github.com/zostay/ghost/cmd/shared"
-	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/plugin"
 )
 
 var KeepersCmd = &cobra.Command{
@@ -15,7 +15,7 @@ var KeepersCmd = &cobra.Command{
 }
 
 func RunListKeepers(cmd *cobra.Command, args []string) {
-	for _, kt := range config.KeeperTypes {
+	for _, kt := range plugin.List() {
 		s.Logger.Print(kt)
 	}
 }

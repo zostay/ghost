@@ -5,6 +5,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/zostay/go-std/slices"
+
+	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/secrets/seq"
 )
 
 var (
@@ -26,24 +29,38 @@ func init() {
 }
 
 func PreRunSetSeqKeeperConfig(cmd *cobra.Command, args []string) error {
+	keeperName := args[0]
+	modKeepers := args[1:]
+
+	c := config.Instance()
+	kc := c.Keepers[keeperName]
+	if kc == nil {
+		kc = map[string]any{
+			"type":    seq.ConfigType,
+			"keepers": []string{},
+		}
+	}
+
 	if appendKeepers && deleteKeepers {
 		return errors.New("cannot append and delete at the same time")
 	}
 
 	if appendKeepers {
-		Replacement.Seq.Keepers = append(Replacement.Seq.Keepers, args[1:]...)
+		keepers := kc["keepers"].([]string)
+		keepers = append(keepers, modKeepers...)
+		kc["keepers"] = keepers
 		return nil
 	}
 
 	if deleteKeepers {
-		for _, k := range args[1:] {
-			Replacement.Seq.Keepers = slices.DeleteValue(
-				Replacement.Seq.Keepers,
-				k)
+		keepers := kc["keepers"].([]string)
+		for _, k := range modKeepers {
+			keepers = slices.DeleteValue(keepers, k)
 		}
+		kc["keepers"] = keepers
 		return nil
 	}
 
-	Replacement.Seq.Keepers = args[1:]
+	Replacement = kc
 	return nil
 }

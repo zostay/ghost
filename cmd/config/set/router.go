@@ -2,8 +2,14 @@ package set
 
 import (
 	"errors"
+	"sort"
 
 	"github.com/spf13/cobra"
+	"github.com/zostay/go-std/set"
+	"github.com/zostay/go-std/slices"
+
+	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/secrets/router"
 )
 
 var (
@@ -41,15 +47,73 @@ func PreRunSetRouterKeeperConfig(cmd *cobra.Command, args []string) error {
 		return errors.New("must specify a keeper to use with the added locations")
 	}
 
+	keeperName := args[0]
+	c := config.Instance()
+	kc := c.Keepers[keeperName]
+	if kc == nil {
+		kc = map[string]any{
+			"type":   router.ConfigType,
+			"routes": []map[string]any{},
+		}
+		Replacement = kc
+	}
+
+	rc := RouterConfig(kc)
+
 	if defaultKeeper != "" {
-		Replacement.Router.DefaultRoute = defaultKeeper
+		kc["default"] = defaultKeeper
 	}
 
 	if len(removeLocations) > 0 {
-		Replacement.Router.Remove(removeLocations...)
+		rc.Remove(removeLocations...)
 		return nil
 	}
 
-	Replacement.Router.Add(addKeeper, addLocations...)
+	rc.Add(addKeeper, addLocations...)
+
+	Replacement = kc
 	return nil
+}
+
+type RouterConfig config.KeeperConfig
+
+func (rc RouterConfig) Add(keeper string, locations ...string) {
+	routes := rc["routes"].([]map[string]any)
+	if routes == nil {
+		routes = make([]map[string]any, 0, 1)
+	}
+
+	routes = append(routes, map[string]any{
+		"locations": locations,
+		"keeper":    keeper,
+	})
+
+	rc["routes"] = routes
+}
+
+func (rc RouterConfig) Remove(removeLocations ...string) {
+	routes := rc["routes"].([]map[string]any)
+	removeSet := set.New(removeLocations...)
+
+	deleteRoutes := []int{}
+	for i, r := range routes {
+		locations := r["locations"].([]string)
+		for _, loc := range locations {
+			if removeSet.Contains(loc) {
+				locations = slices.DeleteValue(locations, loc)
+				if len(locations) == 0 {
+					deleteRoutes = append(deleteRoutes, i)
+				}
+				routes[i]["locations"] = locations
+			}
+		}
+	}
+
+	sort.Reverse(sort.IntSlice(deleteRoutes))
+
+	for _, i := range deleteRoutes {
+		routes = slices.Delete(routes, i)
+	}
+
+	rc["routes"] = routes
 }

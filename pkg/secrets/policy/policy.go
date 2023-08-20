@@ -28,6 +28,10 @@ func New(kpr secrets.Keeper) *Policy {
 	}
 }
 
+func (p *Policy) AddRule(r *MatchRule) {
+	p.matchRule = append(p.matchRule, r)
+}
+
 // EnforceGlobally iterates through all the secrets in the nested keeper and
 // applies the lifetime policy against those secrets.
 func (p *Policy) EnforceGlobally(ctx context.Context) error {

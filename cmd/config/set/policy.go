@@ -8,6 +8,7 @@ import (
 	"github.com/zostay/go-std/slices"
 
 	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/secrets/policy"
 )
 
 var (
@@ -52,8 +53,8 @@ func init() {
 	PolicyCmd.Flags().StringVar(&urlMatch, "url", "", "Set the url policy for the keeper")
 }
 
-func checkOptions() error {
-	if !defaultPolicy && config.ValidAcceptance(acceptance, !defaultPolicy) && lifetime > 0 {
+func checkOptions(kc config.KeeperConfig) error {
+	if !defaultPolicy && policy.ValidAcceptance(acceptance, !defaultPolicy) && lifetime > 0 {
 		return errors.New("cannot set both acceptance and lifetime policies")
 	}
 
@@ -86,20 +87,22 @@ func checkOptions() error {
 		return errors.New("you must specify at least one matcher")
 	}
 
-	if insertPolicy > len(Replacement.Policy.Rules) {
+	rules := kc["rules"].([]map[string]any)
+
+	if insertPolicy > len(rules) {
 		return errors.New("insert index out of range")
 	}
 
-	if insertPolicy == len(Replacement.Policy.Rules) {
+	if insertPolicy == len(rules) {
 		insertPolicy = -1
 		appendPolicy = true
 	}
 
-	if replacePolicy >= len(Replacement.Policy.Rules) {
+	if replacePolicy >= len(rules) {
 		return errors.New("replace index out of range")
 	}
 
-	if removePolicy >= len(Replacement.Policy.Rules) {
+	if removePolicy >= len(rules) {
 		return errors.New("remove index out of range")
 	}
 
@@ -107,7 +110,7 @@ func checkOptions() error {
 		return errors.New("remove policy must not set match strings")
 	}
 
-	hasPolicy := config.ValidAcceptance(acceptance, !defaultPolicy) || lifetime > 0
+	hasPolicy := policy.ValidAcceptance(acceptance, !defaultPolicy) || lifetime > 0
 	if (defaultPolicy || appendPolicy || insertPolicy >= 0 || replacePolicy >= 0) && !hasPolicy {
 		return errors.New("must set acceptance or lifetime policy")
 	}
@@ -116,49 +119,65 @@ func checkOptions() error {
 }
 
 func PreRunSetPolicyKeeperConfig(cmd *cobra.Command, args []string) error {
-	if err := checkOptions(); err != nil {
+	keeperName := args[0]
+	c := config.Instance()
+	kc := c.Keepers[keeperName]
+	if kc == nil {
+		kc = map[string]any{
+			"type":  policy.ConfigType,
+			"rules": []map[string]any{},
+		}
+		Replacement = kc
+	}
+
+	if err := checkOptions(kc); err != nil {
 		return err
 	}
 
 	if defaultPolicy {
 		if acceptance != "" {
-			Replacement.Policy.DefaultRule.Acceptance = acceptance
+			kc["acceptance"] = acceptance
 		}
 		if lifetime > 0 {
-			Replacement.Policy.DefaultRule.Lifetime = lifetime
+			kc["lifetime"] = lifetime
 		}
 	}
 
 	if appendPolicy || insertPolicy >= 0 || replacePolicy >= 0 {
-		rule := config.PolicyMatchRuleConfig{
-			PolicyMatchConfig: config.PolicyMatchConfig{
-				LocationMatch: locationMatch,
-				NameMatch:     nameMatch,
-				UsernameMatch: usernameMatch,
-				TypeMatch:     typeMatch,
-				UrlMatch:      urlMatch,
-			},
-			PolicyRuleConfig: config.PolicyRuleConfig{
-				Lifetime:   lifetime,
-				Acceptance: acceptance,
-			},
+		rule := map[string]any{
+			"location":    locationMatch,
+			"name":        nameMatch,
+			"username":    usernameMatch,
+			"secret_type": typeMatch,
+			"url":         urlMatch,
+
+			"acceptance": acceptance,
+			"lifetime":   lifetime,
+		}
+
+		rules := kc["rules"].([]map[string]any)
+		if rules == nil {
+			rules = make([]map[string]any, 0, 1)
 		}
 
 		if appendPolicy {
-			Replacement.Policy.Rules = append(Replacement.Policy.Rules, rule)
+			rules = append(rules, rule)
 		}
 
 		if insertPolicy >= 0 {
-			Replacement.Policy.Rules = slices.Insert(Replacement.Policy.Rules, insertPolicy, rule)
+			rules = slices.Insert(rules, insertPolicy, rule)
 		}
 
 		if replacePolicy >= 0 {
-			Replacement.Policy.Rules[replacePolicy] = rule
+			rules[replacePolicy] = rule
 		}
+
+		kc["rules"] = rules
 	}
 
 	if removePolicy >= 0 {
-		Replacement.Policy.Rules = slices.Delete(Replacement.Policy.Rules, removePolicy)
+		rules := kc["rules"].([]map[string]any)
+		kc["rules"] = slices.Delete(rules, removePolicy)
 	}
 
 	return nil

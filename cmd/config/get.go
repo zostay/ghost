@@ -1,12 +1,24 @@
 package config
 
 import (
+	"context"
 	"strings"
 
 	"github.com/spf13/cobra"
 
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/keeper"
+	"github.com/zostay/ghost/pkg/secrets/http"
+	"github.com/zostay/ghost/pkg/secrets/human"
+	"github.com/zostay/ghost/pkg/secrets/keepass"
+	"github.com/zostay/ghost/pkg/secrets/keyring"
+	"github.com/zostay/ghost/pkg/secrets/lastpass"
+	"github.com/zostay/ghost/pkg/secrets/low"
+	"github.com/zostay/ghost/pkg/secrets/memory"
+	"github.com/zostay/ghost/pkg/secrets/policy"
+	"github.com/zostay/ghost/pkg/secrets/router"
+	"github.com/zostay/ghost/pkg/secrets/seq"
 )
 
 var GetCmd = &cobra.Command{
@@ -19,40 +31,55 @@ var GetCmd = &cobra.Command{
 func RunGet(cmd *cobra.Command, args []string) {
 	keeperName := args[0]
 	c := config.Instance()
-	keeper, hasKeeper := c.Keepers[keeperName]
+	ctx := keeper.WithBuilder(context.Background(), c)
+	kpr, hasKeeper := c.Keepers[keeperName]
 	if !hasKeeper {
 		s.Logger.Panicf("Keeper %q is not configured.", keeperName)
 	}
 
-	PrintKeeper(keeper, 0)
+	PrintKeeper(ctx, keeperName, kpr, 0)
 }
 
-func PrintKeeper(keeper *config.KeeperConfig, i int) {
-	indent := strings.Repeat(" ", i*2)
-	switch keeper.Type() {
-	case config.KTKeepass:
-		s.Logger.Printf("%stype: keepass", indent)
-		s.Logger.Printf("%spath: %s", indent, keeper.Keepass.Path)
-	case config.KTLastPass:
-		s.Logger.Printf("%stype: lastpass", indent)
-		s.Logger.Printf("%susername: %s", indent, keeper.LastPass.Username)
-	case config.KTLowSecurity:
-		s.Logger.Printf("%stype: low", indent)
-		s.Logger.Printf("%spath: %s", indent, keeper.Low.Path)
-	case config.KTGRPC:
-		s.Logger.Printf("%stype: grpc", indent)
-		s.Logger.Printf("%slistener: %s", indent, keeper.GRPC.Listener)
-	case config.KTKeyring:
-		s.Logger.Printf("%stype: keyring", indent)
-		s.Logger.Printf("%skeyring: %s", indent, keeper.Keyring.ServiceName)
-	case config.KTMemory:
-		s.Logger.Printf("%stype: memory", indent)
-	case config.KTHuman:
-		s.Logger.Printf("%stype: human", indent)
+func makeIndent(i int) string {
+	return strings.Repeat(" ", i*2)
+}
+
+func PrintKeeper(
+	ctx context.Context,
+	keeperName string,
+	kc config.KeeperConfig,
+	i int,
+) {
+	// TODO this should be rolled into plugin configuration too
+	indent := makeIndent(i)
+	dc, err := keeper.Decode(ctx, keeperName)
+	if err != nil {
+		s.Logger.Panicf("failed to decode configuration for keeper %q: %v", keeperName, err)
+	}
+	s.Logger.Printf("%stype: %s", indent, kc.Type())
+	switch kc.Type() {
+	case keepass.ConfigType:
+		kpc := dc.(*keepass.Config)
+		s.Logger.Printf("%spath: %s", indent, kpc.Path)
+		s.Logger.Printf("%smaster: <hidden>", indent)
+	case lastpass.ConfigType:
+		lpc := dc.(*lastpass.Config)
+		s.Logger.Printf("%susername: %s", indent, lpc.Username)
+		s.Logger.Printf("%spassword: <hidden>", indent)
+	case low.ConfigType:
+		lc := dc.(*low.Config)
+		s.Logger.Printf("%spath: %s", indent, lc.Path)
+	case http.ConfigType:
+	case keyring.ConfigType:
+		krc := dc.(*keyring.Config)
+		s.Logger.Printf("%skeyring: %s", indent, krc.ServiceName)
+	case memory.ConfigType:
+	case human.ConfigType:
+		hc := dc.(*human.Config)
 		s.Logger.Printf("%squestions:", indent)
-		for _, q := range keeper.Human.Questions {
-			indentP1 := strings.Repeat(" ", (i+1)*2)
-			indentP2 := strings.Repeat(" ", (i+2)*2)
+		for _, q := range hc.Questions {
+			indentP1 := makeIndent(i + 1)
+			indentP2 := makeIndent(i + 2)
 			s.Logger.Printf("%sid: %s", indentP1, q.ID)
 			s.Logger.Printf("%spresets:", indentP1)
 			for k, v := range q.Presets {
@@ -63,40 +90,38 @@ func PrintKeeper(keeper *config.KeeperConfig, i int) {
 				s.Logger.Printf("%s%s", indentP2, k)
 			}
 		}
-	case config.KTPolicy:
-		s.Logger.Printf("%stype: policy", indent)
-		s.Logger.Printf("%skeeper: %s", indent, keeper.Policy.Keeper)
+	case policy.ConfigType:
+		pc := dc.(*policy.Config)
+		s.Logger.Printf("%skeeper: %s", indent, pc.Keeper)
 		s.Logger.Printf("%sdefault rule:", indent)
-		s.Logger.Printf("%s  acceptance: %s", indent, keeper.Policy.DefaultRule.Acceptance)
-		if keeper.Policy.DefaultRule.Lifetime >= 0 {
-			s.Logger.Printf("%s  lifetime: %v", indent, keeper.Policy.DefaultRule.Lifetime)
+		s.Logger.Printf("%s  acceptance: %s", indent, pc.DefaultRule.Acceptance)
+		if pc.DefaultRule.Lifetime >= 0 {
+			s.Logger.Printf("%s  lifetime: %v", indent, pc.DefaultRule.Lifetime)
 		}
 		s.Logger.Printf("%srules:", indent)
-		for _, r := range keeper.Policy.Rules {
-			if config.ValidAcceptance(r.Acceptance, false) {
+		for _, r := range pc.Rules {
+			if policy.ValidAcceptance(r.Acceptance, false) {
 				s.Logger.Printf("%s - acceptance: %s", indent, r.Acceptance)
 			}
 			if r.Lifetime > 0 {
 				s.Logger.Printf("%s - lifetime: %v", indent, r.Lifetime)
 			}
 		}
-	case config.KTRouter:
-		s.Logger.Printf("%stype: router", indent)
-		s.Logger.Printf("%sdefault route: %s", indent, keeper.Router.DefaultRoute)
+	case router.ConfigType:
+		rc := dc.(*router.Config)
+		s.Logger.Printf("%sdefault route: %s", indent, rc.DefaultRoute)
 		s.Logger.Printf("%sroutes:", indent)
-		for _, route := range keeper.Router.Routes {
+		for _, route := range rc.Routes {
 			s.Logger.Printf("%s - locations: %s", indent, strings.Join(route.Locations, ", "))
 			s.Logger.Printf("%s   keeper: %s", indent, route.Keeper)
 		}
-	case config.KTSeq:
-		s.Logger.Printf("%stype: seq", indent)
+	case seq.ConfigType:
+		sc := dc.(*seq.Config)
 		s.Logger.Printf("%skeepers:", indent)
-		for _, keeper := range keeper.Seq.Keepers {
-			s.Logger.Printf("%s  - %s", indent, keeper)
+		for _, name := range sc.Keepers {
+			s.Logger.Printf("%s  - %s", indent, name)
 		}
-	case config.KTNone:
-		s.Logger.Printf("%sERROR: keeper is not configured", indent)
-	case config.KTConflict:
-		s.Logger.Printf("%sERROR: keeper has multiple configuration", indent)
+	default:
+		s.Logger.Printf("%sERROR: unknown keeper type", indent)
 	}
 }

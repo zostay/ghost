@@ -7,8 +7,8 @@ import (
 )
 
 type MatchRule struct {
-	Match
-	Rule
+	*Match
+	*Rule
 }
 
 func (mr MatchRule) matchLocationAndAcceptable(loc string) matchStatus {

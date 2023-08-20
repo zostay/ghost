@@ -1,10 +1,15 @@
 package config
 
 import (
+	"context"
+	"sort"
+
 	"github.com/spf13/cobra"
+	"github.com/zostay/go-std/maps"
 
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/keeper"
 )
 
 var ListCmd = &cobra.Command{
@@ -16,9 +21,14 @@ var ListCmd = &cobra.Command{
 
 func RunListConfig(cmd *cobra.Command, args []string) {
 	c := config.Instance()
+	ctx := keeper.WithBuilder(context.Background(), c)
 
-	for name, kc := range c.Keepers {
-		s.Logger.Print(name)
-		PrintKeeper(kc, 1)
+	keys := maps.Keys(c.Keepers)
+	sort.Strings(keys)
+
+	for _, keeperName := range keys {
+		kpr := c.Keepers[keeperName]
+		s.Logger.Print(keeperName)
+		PrintKeeper(ctx, keeperName, kpr, 1)
 	}
 }

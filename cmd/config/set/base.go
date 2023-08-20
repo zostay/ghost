@@ -1,10 +1,13 @@
 package set
 
 import (
+	"context"
+
 	"github.com/spf13/cobra"
 
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/keeper"
 )
 
 var Replacement config.KeeperConfig
@@ -13,19 +16,22 @@ func RunSetKeeperConfig(cmd *cobra.Command, args []string) {
 	keeperName := args[0]
 	c := config.Instance()
 
-	keeper, hasKeeper := c.Keepers[keeperName]
-	var was config.KeeperType
-	if hasKeeper {
-		was = keeper.Type()
+	kc := c.Keepers[keeperName]
+	var was string
+	if kc != nil {
+		was := kc.Type()
+		if was == "" {
+			s.Logger.Panicf("Configuration failed. Keeper %q has no type.", keeperName)
+		}
 	}
 
-	c.Keepers[keeperName] = &Replacement
+	c.Keepers[keeperName] = Replacement
 
-	if hasKeeper && was != keeper.Type() {
-		s.Logger.Panicf("Configuration failed. New keeper type %q does not match old type %q.", keeper.Type(), was)
+	if kc != nil && was != kc.Type() {
+		s.Logger.Panicf("Configuration failed. New kc type %q does not match old type %q.", kc.Type(), was)
 	}
 
-	err := c.Check()
+	err := keeper.CheckConfig(context.Background(), c)
 	if err != nil {
 		s.Logger.Panicf("Configuration failed. Configuration errors: %v", err)
 	}

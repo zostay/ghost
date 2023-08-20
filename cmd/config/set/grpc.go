@@ -1,6 +1,11 @@
 package set
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+
+	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/secrets/http"
+)
 
 var GRPCCmd = &cobra.Command{
 	Use:    "grpc <keeper-name>",
@@ -11,5 +16,7 @@ var GRPCCmd = &cobra.Command{
 }
 
 func PreRunSetGRPCKeeperConfig(cmd *cobra.Command, args []string) {
-	Replacement.GRPC.Listener = "unix"
+	Replacement = config.KeeperConfig{
+		"type": http.ConfigType,
+	}
 }

@@ -54,8 +54,8 @@ func RunGet(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("No keeper named %q.", keeperName)
 	}
 
-	ctx := context.Background()
-	kpr, err := keeper.Build(ctx, keeperName, c)
+	ctx := keeper.WithBuilder(context.Background(), c)
+	kpr, err := keeper.Build(ctx, keeperName)
 	if err != nil {
 		s.Logger.Panic(err)
 	}

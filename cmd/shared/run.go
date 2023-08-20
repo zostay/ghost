@@ -1,11 +1,13 @@
 package shared
 
 import (
+	"context"
 	"log"
 
 	"github.com/spf13/cobra"
 
 	"github.com/zostay/ghost/pkg/config"
+	"github.com/zostay/ghost/pkg/keeper"
 )
 
 func RunRoot(cmd *cobra.Command, args []string) {
@@ -17,7 +19,9 @@ func RunRoot(cmd *cobra.Command, args []string) {
 		Logger.Panicf("Failure to load configuration: %v", err)
 	}
 
-	err = config.Instance().Check()
+	cfg := config.Instance()
+	ctx := keeper.WithBuilder(context.Background(), cfg)
+	err = keeper.CheckConfig(ctx, cfg)
 	if err != nil {
 		Logger.Panicf("Configuration errors: %v", err)
 	}

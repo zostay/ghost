@@ -1,4 +1,4 @@
-package low
+package keepass
 
 import (
 	"context"
@@ -8,19 +8,20 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
-const ConfigType = "low"
+const ConfigType = "keepass"
 
 type Config struct {
-	Path string `mapstructure:"path" yaml:"path"`
+	Path   string `mapstructure:"path" yaml:"path"`
+	Master string `mapstructure:"master_password" yaml:"master_password"`
 }
 
 func Builder(_ context.Context, c any) (secrets.Keeper, error) {
-	cfg, isLow := c.(*Config)
-	if !isLow {
+	cfg, isKeepass := c.(*Config)
+	if !isKeepass {
 		return nil, plugin.ErrConfig
 	}
 
-	return NewLowSecurity(cfg.Path), nil
+	return NewKeepass(cfg.Path, cfg.Master)
 }
 
 func init() {

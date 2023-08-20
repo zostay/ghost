@@ -1,4 +1,4 @@
-package secrets_test
+package memory_test
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ func TestInternal(t *testing.T) {
 	t.Parallel()
 
 	factory := func() (secrets.Keeper, error) {
-		return secrets.NewInternal()
+		return memory.NewInternal()
 	}
 
 	ts := keepertest.New(factory)
