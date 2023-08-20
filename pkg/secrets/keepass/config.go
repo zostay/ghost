@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/plugin"
 	"github.com/zostay/ghost/pkg/secrets"
 )
@@ -25,5 +26,27 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 }
 
 func init() {
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil)
+	cmd := plugin.CmdConfig{
+		Short: "Configure a Keepass secret keeper",
+		Fields: map[string]string{
+			"path":            "Path to the Keepass database",
+			"master-password": "The master password to use to unlock the Keepass database",
+		},
+		Run: func(keeperName string, fields map[string]any) (config.KeeperConfig, error) {
+			kc := config.KeeperConfig{
+				"type": ConfigType,
+			}
+
+			if path, ok := fields["path"]; ok {
+				kc["path"] = path
+			}
+
+			if master, ok := fields["master-password"]; ok {
+				kc["master_password"] = master
+			}
+
+			return kc, nil
+		},
+	}
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
 }

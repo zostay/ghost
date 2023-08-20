@@ -18,7 +18,7 @@ var (
 		Run:    RunSetKeeperConfig,
 	}
 
-	setQuestion, remoteQuestion string
+	setQuestion, removeQuestion string
 	askFor                      []string
 	presets                     map[string]string
 )
@@ -27,21 +27,21 @@ func init() {
 	HumanCmd.Flags().StringSliceVar(&askFor, "ask-for", []string{}, "Ask for a secret value")
 	HumanCmd.Flags().StringToStringVar(&presets, "preset", map[string]string{}, "Set a preset value")
 	HumanCmd.Flags().StringVar(&setQuestion, "set", "", "Add or update a secret value with the given ID")
-	HumanCmd.Flags().StringVar(&remoteQuestion, "remove", "", "Remove a secret value with the given ID")
+	HumanCmd.Flags().StringVar(&removeQuestion, "remove", "", "Remove a secret value with the given ID")
 }
 
 func PreRunSetHumanKeeperConfig(cmd *cobra.Command, args []string) {
 	keeperName := args[0]
 
-	if setQuestion != "" && remoteQuestion != "" {
+	if setQuestion != "" && removeQuestion != "" {
 		s.Logger.Panic("cannot set and remove a secret value in the same step")
 	}
 
-	if setQuestion != "" || remoteQuestion != "" {
+	if setQuestion != "" || removeQuestion != "" {
 		s.Logger.Panic("you must set or remove a secret value with this command")
 	}
 
-	if remoteQuestion != "" && (len(askFor) > 0 || len(presets) > 0) {
+	if removeQuestion != "" && (len(askFor) > 0 || len(presets) > 0) {
 		s.Logger.Panic("--remove is incompatible with --ask-for or --preset")
 	}
 
@@ -60,8 +60,8 @@ func PreRunSetHumanKeeperConfig(cmd *cobra.Command, args []string) {
 	hc := HumanConfig(kc)
 	Replacement = kc
 
-	if remoteQuestion != "" {
-		hc.Remove(remoteQuestion)
+	if removeQuestion != "" {
+		hc.Remove(removeQuestion)
 		return
 	}
 

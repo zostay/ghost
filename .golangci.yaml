@@ -40,6 +40,7 @@ linters-settings:
         allow:
           - "$gostd"
           - github.com/spf13/cobra
+          - github.com/spf13/pflag
           - github.com/zostay
           - github.com/oklog/ulid
           - github.com/ansd/lastpass-go

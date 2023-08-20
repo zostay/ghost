@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/plugin"
 	"github.com/zostay/ghost/pkg/secrets"
 )
@@ -24,5 +25,11 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 }
 
 func init() {
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil)
+	cmd := plugin.CmdConfig{
+		Short: "Configure an in-memory, temporary secret keeper",
+		Run: func(keeperName string, fields map[string]any) (config.KeeperConfig, error) {
+			return config.KeeperConfig{"type": ConfigType}, nil
+		},
+	}
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
 }

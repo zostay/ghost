@@ -6,8 +6,6 @@ import (
 	"path/filepath"
 
 	"gopkg.in/yaml.v3"
-
-	"github.com/zostay/ghost/pkg/plugin"
 )
 
 const configFile = ".ghost.yaml"
@@ -15,15 +13,6 @@ const configFile = ".ghost.yaml"
 var cfgInstance *Config
 
 type KeeperConfig map[string]any
-
-func (c KeeperConfig) Type() string {
-	if typ, hasTyp := c["type"].(string); hasTyp {
-		if _, isRegistered := plugin.Get(typ); isRegistered {
-			return typ
-		}
-	}
-	return ""
-}
 
 type Config struct {
 	MasterKeeper string                  `yaml:"master"`

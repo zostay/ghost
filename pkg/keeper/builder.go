@@ -158,15 +158,11 @@ func (mb *builderContext) configAndBuilder(name string) (kc config.KeeperConfig,
 		return
 	}
 
-	if kc.Type() == "" {
-		err = fmt.Errorf("keeper configuration for %q has no type", name)
-		return
-	}
-
-	var hasTypBuilder bool
-	r, hasTypBuilder = plugin.Get(kc.Type())
-	if !hasTypBuilder {
-		err = fmt.Errorf("keeper configuration for %q has an unknown type %q", name, kc.Type())
+	typ := kc["type"].(string)
+	var hasPlugin bool
+	r, hasPlugin = plugin.Get(typ)
+	if !hasPlugin {
+		err = fmt.Errorf("keeper configuration for %q has incorrect or unregistered type", name, typ)
 		return
 	}
 

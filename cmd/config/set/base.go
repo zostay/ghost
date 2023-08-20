@@ -8,6 +8,7 @@ import (
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/keeper"
+	"github.com/zostay/ghost/pkg/plugin"
 )
 
 var Replacement config.KeeperConfig
@@ -19,7 +20,7 @@ func RunSetKeeperConfig(cmd *cobra.Command, args []string) {
 	kc := c.Keepers[keeperName]
 	var was string
 	if kc != nil {
-		was := kc.Type()
+		was := plugin.Type(kc)
 		if was == "" {
 			s.Logger.Panicf("Configuration failed. Keeper %q has no type.", keeperName)
 		}
@@ -27,8 +28,8 @@ func RunSetKeeperConfig(cmd *cobra.Command, args []string) {
 
 	c.Keepers[keeperName] = Replacement
 
-	if kc != nil && was != kc.Type() {
-		s.Logger.Panicf("Configuration failed. New kc type %q does not match old type %q.", kc.Type(), was)
+	if kc != nil && was != plugin.Type(kc) {
+		s.Logger.Panicf("Configuration failed. New kc type %q does not match old type %q.", plugin.Type(kc), was)
 	}
 
 	err := keeper.CheckConfig(context.Background(), c)
