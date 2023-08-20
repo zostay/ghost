@@ -1,23 +1,27 @@
-master: local
+master: temp
 keepers:
-  foo:
-    seq:
-      keepers:
-        - local-secure
-        - local-insecure
+  temp:
+    type: memory
+
+  grpc:
+    type: http
+
   local:
-    router:
-      routes:
-        - locations:
-            - api-keys
-          keeper: local-insecure
-      default: local-secure
+    type: router
+    routes:
+      - locations:
+          - api-keys
+        keeper: local-insecure
+    default: local-secure
+
   local-insecure:
-    low:
-      path: $HOME/secrets/api-keys.yaml
+    type: low
+    path: $HOME/secrets/api-keys.yaml
+
   local-secure:
-    keepass:
-      path: $HOME/secrets/keepass.kdbx
+    type: keepass
+    path: $HOME/secrets/keepass.kdbx
+
   remote:
-    lastpass:
-      username: sterling@example.com
+    type: lastpass
+    username: sterling@example.com
