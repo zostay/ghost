@@ -44,9 +44,11 @@ func setupCommands() error {
 			PreRunE: MakePreRunSetKeeperConfig(pc.CmdConfig.Run, fields),
 		}
 
-		if err := pc.CmdConfig.FlagInit(subCmd.Flags()); err != nil {
-			s.Logger.Panic(err)
-			return err
+		if pc.CmdConfig.FlagInit != nil {
+			if err := pc.CmdConfig.FlagInit(subCmd.Flags()); err != nil {
+				s.Logger.Panic(err)
+				return err
+			}
 		}
 
 		for name, desc := range pc.CmdConfig.Fields {
