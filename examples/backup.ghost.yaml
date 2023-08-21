@@ -1,0 +1,33 @@
+# A simple configuration for helping you to perform backups of your LastPass
+# vault into a Keepass database. Run:
+#
+#   ghost sync lastpass keepass
+#
+# It will ask for the passwords for each.
+---
+keepers:
+  lastpass:
+    type: lastpass
+    username: some.user@example.com
+    password:
+      __SECRET__:
+        keeper: pinentry
+        secret: LastPass Password
+        field: password
+
+  keepass:
+    type: keepass
+    path: $HOME/backup/lastpass.kdbx
+    master_password:
+      __SECRET__:
+        keeper: pinentry
+        secret: Keepass Master Password
+        field: password
+
+  pinentry:
+    type: human
+    questions:
+      - id: LastPass Password
+        ask_for: [ password ]
+      - id: Keepass Master Password
+        ask_for: [ password ]
