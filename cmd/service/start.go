@@ -23,32 +23,42 @@ var (
 	enforceAllPolicies bool
 	enforcePolicies    []string
 	enforcementPeriod  time.Duration
+	keeperService      string
 )
 
 func init() {
 	StartCmd.Flags().BoolVar(&enforceAllPolicies, "enforce-all-policies", false, "enforce all policies")
 	StartCmd.Flags().StringSliceVar(&enforcePolicies, "enforce-policy", []string{}, "enforce the named policies")
 	StartCmd.Flags().DurationVar(&enforcementPeriod, "enforcement-period", 1*time.Minute, "enforce policies every period")
+	StartCmd.Flags().StringVar(&keeperService, "keeper", "", "the name of the keeper service to use (master used by default)")
 }
 
 func RunStartService(cmd *cobra.Command, args []string) {
 	if enforceAllPolicies && len(enforcePolicies) > 0 {
 		s.Logger.Panic("cannot use --enforce-all-policies and --enforce-policy together")
+		return
 	}
 
 	if enforcementPeriod < 2*time.Second {
 		s.Logger.Panic("enforcement period is too short")
+		return
 	}
 
 	c := config.Instance()
-	if c.MasterKeeper == "" {
-		s.Logger.Panic("no master keeper set")
+	if keeperService == "" {
+		keeperService = c.MasterKeeper
+	}
+
+	if keeperService == "" {
+		s.Logger.Panic("Please specify --keeper or set a master in the configuration file")
+		return
 	}
 
 	ctx := keeper.WithBuilder(context.Background(), c)
-	kpr, err := keeper.Build(ctx, c.MasterKeeper)
+	kpr, err := keeper.Build(ctx, keeperService)
 	if err != nil {
-		s.Logger.Panicf("failed to configure master keeper %q: %v", c.MasterKeeper, err)
+		s.Logger.Panicf("failed to configure master keeper %q: %v", keeperService, err)
+		return
 	}
 
 	if enforceAllPolicies {
