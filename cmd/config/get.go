@@ -81,15 +81,14 @@ func PrintKeeper(
 		for _, q := range hc.Questions {
 			indentP1 := makeIndent(i + 1)
 			indentP2 := makeIndent(i + 2)
-			s.Logger.Printf("%sid: %s", indentP1, q.ID)
-			s.Logger.Printf("%spresets:", indentP1)
-			for k, v := range q.Presets {
-				s.Logger.Printf("%s%s = %s", indentP2, k, v)
+			s.Logger.Printf("%s- id: %s", indent, q.ID)
+			if len(q.Presets) > 0 {
+				s.Logger.Printf("%spresets:", indentP1)
+				for k, v := range q.Presets {
+					s.Logger.Printf("%s%s = %s", indentP2, k, v)
+				}
 			}
-			s.Logger.Printf("%sasking for:", indentP1)
-			for _, k := range q.AskFor {
-				s.Logger.Printf("%s%s", indentP2, k)
-			}
+			s.Logger.Printf("%sasking for: %s", indentP1, strings.Join(q.AskFor, ", "))
 		}
 	case policy.ConfigType:
 		pc := dc.(*policy.Config)

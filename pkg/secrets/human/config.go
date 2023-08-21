@@ -37,10 +37,14 @@ func Validator(_ context.Context, c any) error {
 	errs := plugin.NewValidationError()
 
 	for _, q := range cfg.Questions {
+		if len(q.AskFor) == 0 {
+			errs.Append(fmt.Errorf("human question %q asks for nothing", q.ID))
+		}
+
 		flds := set.New[string](maps.Keys(q.Presets)...)
 		for _, f := range q.AskFor {
-			if !flds.Contains(f) {
-				errs.Append(fmt.Errorf("human question configuration already contains field named %q", f))
+			if flds.Contains(f) {
+				errs.Append(fmt.Errorf("human question %q configuration already contains field named %q", q.ID, f))
 			}
 			flds.Insert(f)
 		}
