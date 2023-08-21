@@ -108,6 +108,11 @@ func (mb *builderContext) Decode(name string) (any, error) {
 		return nil, err
 	}
 
+	err = mb.resolveSecretRefsInMap(kc, true)
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := reflect.New(typBuilder.Config).Interface()
 	err = mapstructure.Decode(kc, cfg)
 	if err != nil {
@@ -123,6 +128,11 @@ func (mb *builderContext) Build(name string) (secrets.Keeper, error) {
 		return nil, err
 	}
 
+	err = mb.resolveSecretRefsInMap(kc, true)
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := reflect.New(typBuilder.Config).Interface()
 	err = mapstructure.Decode(kc, cfg)
 	if err != nil {
@@ -134,6 +144,11 @@ func (mb *builderContext) Build(name string) (secrets.Keeper, error) {
 
 func (mb *builderContext) Validate(name string) error {
 	kc, typBuilder, err := mb.configAndBuilder(name)
+	if err != nil {
+		return err
+	}
+
+	err = mb.resolveSecretRefsInMap(kc, false)
 	if err != nil {
 		return err
 	}
@@ -167,4 +182,46 @@ func (mb *builderContext) configAndBuilder(name string) (kc config.KeeperConfig,
 	}
 
 	return
+}
+
+func (mb *builderContext) resolveSecretRefsInMap(kc config.KeeperConfig, lookup bool) error {
+	for k, v := range kc {
+		if k == config.SecretRefKey {
+			var ref config.SecretRef
+			err := mapstructure.Decode(v, &ref)
+			if err != nil {
+				return err
+			}
+
+			if ref.KeeperName == "" {
+				return errors.New("malformed secret reference: keeper is empty")
+			}
+
+			if mb.c.Keepers[ref.KeeperName] == nil {
+				return fmt.Errorf("malformed secret reference: keeper %q does not exist", ref.KeeperName)
+			}
+
+			if ref.SecretName == "" {
+				return errors.New("malformed secret reference: secret is empty")
+			}
+
+			if ref.Field == "" {
+				return errors.New("malformed secret reference: field is empty")
+			}
+
+			if lookup {
+				kc[k] = "<secret-placeholder>"
+				continue
+			}
+		}
+
+		if vMap, isMap := v.(map[string]any); isMap {
+			err := mb.resolveSecretRefsInMap(vMap, lookup)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
