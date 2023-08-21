@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/zostay/ghost/cmd"
+	_ "github.com/zostay/ghost/pkg/secrets/cache"
 	_ "github.com/zostay/ghost/pkg/secrets/http"
 	_ "github.com/zostay/ghost/pkg/secrets/human"
 	_ "github.com/zostay/ghost/pkg/secrets/keepass"
