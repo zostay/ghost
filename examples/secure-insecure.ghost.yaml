@@ -1,0 +1,35 @@
+# Sometimes you may want to treat some secrets less carefully and don't mind
+# storing them in a plaintext file. For example, you may want to store a github
+# API token on your laptop in a plaintext file.
+#
+# Using ghost, you can have some secrets stored securely and others not. Here
+# you will be prompted for your master password every time you get a secure
+# password, but not for the insecure ones.
+---
+master: myPasswords
+keepers:
+  myPasswords:
+    type: router
+    default: secure
+    routes:
+      - locations: [ api-tokens ]
+        keeper: insecure
+
+  secure:
+    type: keepass
+    path: $HOME/secrets/keepass.kdbx
+    master:
+      __SECRET__:
+        keeper: pinentry
+        secret: keepass-password
+        field: password
+
+  insecure:
+    type: low
+    path: $HOME/secrets/api-tokens.yaml
+
+  pinentry:
+    type: human
+    questions:
+      - id: keepass-password
+        ask_for: [ password ]

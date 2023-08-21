@@ -1,0 +1,26 @@
+# This configuration file will grant ghost access to your Keepass database,
+# automatically unlocking it on request. The master password is stored in the
+# system keyring. This assumes that you:
+# 1. Trust the system keyring to secure store your master password.
+# 2. Run this ghost command sometime before you access the keepass database:
+#
+#    ghost set --keeper=systemKeyring \
+#        --id personal-keepass.kdbx-master-password \
+#        --prompt
+#
+# And then enter your password.
+---
+master: myPasswords
+keepers:
+  systemKeyring:
+    type: keyring
+    service_name: ghost
+
+  myPasswords:
+    type: keepass
+    path: /home/user/keepass.kdbx
+    master_password:
+      __SECRET__:
+        keeper: systemKeyring
+        secret: personal-keepass.kdbx-master-password
+        field: password
