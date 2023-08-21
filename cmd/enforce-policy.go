@@ -8,6 +8,7 @@ import (
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/keeper"
+	"github.com/zostay/ghost/pkg/plugin"
 	"github.com/zostay/ghost/pkg/secrets/policy"
 )
 
@@ -26,7 +27,7 @@ func RunEnforcePolicy(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("Keeper %q is not configured.", keeperName)
 	}
 
-	if cfg.Type() != policy.ConfigType {
+	if plugin.Type(cfg) != policy.ConfigType {
 		s.Logger.Panicf("Keeper %q is not a policy keeper.", keeperName)
 	}
 

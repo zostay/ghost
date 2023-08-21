@@ -17,11 +17,12 @@ var ErrConfig = errors.New("incorrect configuration")
 
 type BuilderFunc func(context.Context, any) (secrets.Keeper, error)
 type ValidatorFunc func(context.Context, any) error
+type CmdFunc func(keeperName string, fields map[string]any) (config.KeeperConfig, error)
 
 type FlagsFunc func(flags *pflag.FlagSet) error
 type CmdConfig struct {
 	Short    string
-	Run      func(keeperName string, fields map[string]any) (config.KeeperConfig, error)
+	Run      CmdFunc
 	FlagInit FlagsFunc
 	Fields   map[string]string
 }

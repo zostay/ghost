@@ -9,6 +9,7 @@ import (
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/keeper"
+	"github.com/zostay/ghost/pkg/plugin"
 	"github.com/zostay/ghost/pkg/secrets/http"
 	"github.com/zostay/ghost/pkg/secrets/human"
 	"github.com/zostay/ghost/pkg/secrets/keepass"
@@ -56,8 +57,8 @@ func PrintKeeper(
 	if err != nil {
 		s.Logger.Panicf("failed to decode configuration for keeper %q: %v", keeperName, err)
 	}
-	s.Logger.Printf("%stype: %s", indent, kc.Type())
-	switch kc.Type() {
+	s.Logger.Printf("%stype: %s", indent, plugin.Type(kc))
+	switch plugin.Type(kc) {
 	case keepass.ConfigType:
 		kpc := dc.(*keepass.Config)
 		s.Logger.Printf("%spath: %s", indent, kpc.Path)

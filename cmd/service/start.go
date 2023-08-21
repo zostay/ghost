@@ -9,6 +9,7 @@ import (
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/keeper"
+	"github.com/zostay/ghost/pkg/plugin"
 	"github.com/zostay/ghost/pkg/secrets/policy"
 )
 
@@ -52,7 +53,7 @@ func RunStartService(cmd *cobra.Command, args []string) {
 
 	if enforceAllPolicies {
 		for name, cfg := range c.Keepers {
-			if cfg.Type() == policy.ConfigType {
+			if plugin.Type(cfg) == policy.ConfigType {
 				enforcePolicies = append(enforcePolicies, name)
 			}
 		}
@@ -68,7 +69,7 @@ func RunStartService(cmd *cobra.Command, args []string) {
 
 func startPolicyEnforcement(ctx context.Context, c *config.Config) {
 	for _, name := range enforcePolicies {
-		if c.Keepers[name].Type() != policy.ConfigType {
+		if plugin.Type(c.Keepers[name]) != policy.ConfigType {
 			s.Logger.Panicf("keeper %q is not a policy keeper", name)
 		}
 
