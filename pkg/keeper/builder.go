@@ -108,7 +108,7 @@ func (mb *builderContext) Decode(name string) (any, error) {
 		return nil, err
 	}
 
-	err = mb.resolveSecretRefsInMap(kc, true)
+	_, err = mb.resolveSecretRefsInMap(kc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (mb *builderContext) Build(name string) (secrets.Keeper, error) {
 		return nil, err
 	}
 
-	err = mb.resolveSecretRefsInMap(kc, true)
+	_, err = mb.resolveSecretRefsInMap(kc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (mb *builderContext) Validate(name string) error {
 		return err
 	}
 
-	err = mb.resolveSecretRefsInMap(kc, false)
+	_, err = mb.resolveSecretRefsInMap(kc, false)
 	if err != nil {
 		return err
 	}
@@ -184,44 +184,70 @@ func (mb *builderContext) configAndBuilder(name string) (kc config.KeeperConfig,
 	return
 }
 
-func (mb *builderContext) resolveSecretRefsInMap(kc config.KeeperConfig, lookup bool) error {
+func (mb *builderContext) resolveSecretRefsInMap(kc config.KeeperConfig, lookup bool) (any, error) {
 	for k, v := range kc {
 		if k == config.SecretRefKey {
 			var ref config.SecretRef
 			err := mapstructure.Decode(v, &ref)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			if ref.KeeperName == "" {
-				return errors.New("malformed secret reference: keeper is empty")
+				return nil, errors.New("malformed secret reference: keeper is empty")
 			}
 
 			if mb.c.Keepers[ref.KeeperName] == nil {
-				return fmt.Errorf("malformed secret reference: keeper %q does not exist", ref.KeeperName)
+				return nil, fmt.Errorf("malformed secret reference: keeper %q does not exist", ref.KeeperName)
 			}
 
 			if ref.SecretName == "" {
-				return errors.New("malformed secret reference: secret is empty")
+				return nil, errors.New("malformed secret reference: secret is empty")
 			}
 
 			if ref.Field == "" {
-				return errors.New("malformed secret reference: field is empty")
+				return nil, errors.New("malformed secret reference: field is empty")
 			}
 
-			if lookup {
-				kc[k] = "<secret-placeholder>"
-				continue
+			if !lookup {
+				return "<secret-placeholder>", nil
+			}
+
+			kpr, err := mb.Build(ref.KeeperName)
+			if err != nil {
+				return nil, fmt.Errorf("unable to perform lookup with keeper %q: %w", ref.KeeperName, err)
+			}
+
+			sec, err := kpr.GetSecret(mb, ref.SecretName)
+			if err != nil {
+				return nil, fmt.Errorf("unable to perform secret lookup with keeper %q and secret %q: %w", ref.KeeperName, ref.SecretName, err)
+			}
+
+			switch ref.Field {
+			case "id":
+				return sec.ID(), nil
+			case "username":
+				return sec.Username(), nil
+			case "password":
+				return sec.Password(), nil
+			case "type":
+				return sec.Type(), nil
+			case "url":
+				return sec.Url().String(), nil
+			default:
+				return sec.GetField(ref.Field), nil
 			}
 		}
 
-		if vMap, isMap := v.(map[string]any); isMap {
-			err := mb.resolveSecretRefsInMap(vMap, lookup)
+		if vMap, isMap := v.(config.KeeperConfig); isMap {
+			lVal, err := mb.resolveSecretRefsInMap(vMap, lookup)
 			if err != nil {
-				return err
+				return nil, err
 			}
+
+			kc[k] = lVal
 		}
 	}
 
-	return nil
+	return kc, nil
 }
