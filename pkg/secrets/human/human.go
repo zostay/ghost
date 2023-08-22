@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/url"
+	"time"
 
 	"github.com/gopasspw/pinentry"
 	"golang.org/x/text/cases"
@@ -24,7 +25,9 @@ type Human struct {
 var _ secrets.Keeper = &Human{}
 
 func New() *Human {
-	return &Human{}
+	return &Human{
+		secrets: make(map[string]Question, 1),
+	}
 }
 
 func (h *Human) AddQuestion(
@@ -73,7 +76,9 @@ func setField(
 func (h *Human) GetSecret(_ context.Context, id string) (secrets.Secret, error) {
 	title := cases.Title(language.English)
 	if def, defExists := h.secrets[id]; defExists {
-		sec := secrets.NewSecret(id, "", "", secrets.WithID(id))
+		sec := secrets.NewSecret(id, "", "",
+			secrets.WithID(id),
+			secrets.WithLastModified(time.Now()))
 		for _, fld := range def.flds {
 			v, err := pinEntry(
 				"Enter "+fld,

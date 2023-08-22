@@ -38,9 +38,13 @@ func PrintSecret(sec secrets.Secret, showSecret bool, flds ...string) {
 	if fldSet.Len() == 0 || fldSet.Contains("type") {
 		Logger.Printf("  Type: %s", sec.Type())
 	}
-	Logger.Print("  Fields:")
+	printedHeading := false
 	for k, v := range sec.Fields() {
 		if fldSet.Len() == 0 || fldSet.Contains(strings.ToLower(k)) {
+			if !printedHeading {
+				Logger.Print("  Fields:")
+				printedHeading = true
+			}
 			Logger.Printf("    %s: %s", k, v)
 		}
 	}
