@@ -1,8 +1,183 @@
 # ghost
 
-This is a secret toolkit written in Go. I use it to backup my secretes locally and to provide tooling to allow my scripts and such to retrieve secrets without having to store such things in environment files or other ways that make me nervous.
+This is a secret toolkit written in Go. I use it to backup my online password vault locally and to provide tooling to allow my scripts and such to retrieve secrets without having to store such things in environment files or other ways that make me nervous.
 
-I only use this on local machines that only I access. I cannot vouch for the safety of transport or security of storage of any aspect of this system. As per the terms of the license, you use this software entirely at your own risk. I make no guarantees or warranties regarding the security or safety of this system.
+I only use this on local machines that only I have access. I cannot vouch for the safety of transport or security of storage of any aspect of this system. As per the terms of the license, you use this software entirely at your own risk. I make no guarantees or warranties regarding the security or safety of this system.
+
+Suggested use-cases for this software include to:
+
+* Provide command-line access to your Keepass or Lastpass secrets
+* Provide command-line access to API keys in a plaintext store
+* Provide scripts and other tools access to your passwords.
+* Embed the secret handing that Ghost provides inside of Golang apps
+* Synchronize data between password stores for backups or other purposes.
+
+# Installation
+
+At this time, no packaged binaries are provided. Installation is from source. You will need to have a Golang compiler to run:
+
+```shell
+go install github.com/zostay/ghost@latest
+```
+
+# Getting Started
+
+Before you work with any secrets in the system, you will need to install and configure the `ghost` application. The configuration is performed in a file named `.ghost.yaml` in the root of your home directory by default. You may specify a different location using the `--config` option. The configuration is in YAML format and a simple configuration could look something like this:
+
+```yaml
+master: mypasswords
+keepers:
+  mypasswords:
+    type: lastpass
+    username: some.email@example.com
+    password: hunter2 # DO NOT DO THIS!
+```
+
+This configures `mypasswords` as the default (the "master") secret keeper. Without this, you'd need to set `--keeper` on every run of `ghost` to select your keeper. It then configures that keeper to use the lastpass secret keeper driver and gives it a username and password. **Storing your master password in plaintext in this configuration is stupid, so don't.** A much better configuration is shown next. However, for those who just want to skip to the end and see the useful bits. With this configuration (assuming the username and password match a real account), you could run these commands:
+
+```shell
+% ghost set --name=github.com --username=some.email@example.com --prompt
+password: 
+% ghost get --name=github.com
+github.com:                                                                                     
+  ID: 348737777372782
+  Location: Personal
+  Username: some.email@example.com
+  Password: <hidden>                                                                            
+  URL: https://github.com/login
+  Modified: 2022-10-14 07:23:33 -0500 CDT
+  Type:
+```
+
+However, rather than using the above configuration, a better one would be something like this:
+
+```yaml
+master: mypasswords
+keepers:
+  mypasswords:
+    type: lastpass
+    username: some.email@example.com
+    password:
+      __SECRET__:
+        keeper: pinentry
+        secret: LastPass Password
+        field: password
+  pinentry:
+    type: human
+    questions:
+      - id: LastPass Password
+        ask_for: [ password ]
+```
+
+This configuration is much more secure. Now, when you access your secrets using `ghost`, it will ask you for your "LastPass Password" using a password dialog. Many keys in the configuration can be replaced with a `__SECRET__` value like this to cause that value to be replaced by a lookup from another secret keeper. In this case, the `pinentry` keeper, which uses the `human` secret keeper driver, which just asks the human at the keyboard for the value. For this configuration to work, the `secret` under `__SECRET__` must match to the `id`, the field requested must be set to `password` and the `human` driver needs to be told to ask for the `password` so it has that value to provide.
+
+Entering your master password every time could be a bit annoying if you access passwords often and you have a good long master password. To avoid this, `ghost` can access passwords in your system keyring, which is typically unlocked by you during login, if you are willing to trust your master password to the system keyring. Here is an example of such a configuration:
+
+```yaml
+master: myPasswords
+keepers:
+  systemKeyring:
+    type: keyring
+    service_name: ghost
+
+  myPasswords:
+    type: keepass
+    path: /home/user/keepass.kdbx
+    master_password:
+      __SECRET__:
+        keeper: systemKeyring
+        secret: personal-keepass.kdbx-master-password
+        field: password
+```
+
+For the above to work, you will need to run:
+
+```bash
+ghost set --name=personal-keepass.kdbx-master-password --prompt
+```
+
+Then, enter your master password.
+
+If you do not trust the system keyring, another option is to configure a password service to run to securely cache the master password in memory. Here's an example configuration that does that:
+
+```yaml
+master: myPasswords
+keepers:
+  pinentry:
+    type: human
+    questions:
+      - id: LastPass Password
+        ask_for: [ password ]
+
+  tempPolicy:
+    type: policy
+    keeper: tempStore
+    lifetime: 1h
+
+  tempStore:
+    keeper: pinentry
+    type: cache
+
+  passwordService:
+    type: http
+
+  myPasswords:
+    type: lastpass
+    username: some.email@example.com
+    password:
+      __SECRET__:
+        keeper: passwordService
+        secret: LastPass Password
+        field: password
+```
+
+For the above to work, you will want to arrange to start the password service upon startup or login. Ensure this command runs on startup:
+
+```shell
+ghost service start --keeper tempPolicy --enforce-all-policies
+```
+
+Then, when you run a command that accesses the `myPasswords` secret keeper, you will be prompted to enter your "LastPass Password". This will be cached in memory for one hour. Communication with the password service is done over a unix socket, so it shouldn't be accessible by other users on the system or over the network. If you want to restart the hour every time you access a secret, you can add the line `touch_on_read: true` to the `tempStore` keeper configuration."
+
+See the `examples` folder of this project for additional sample configurations.
+
+# Command Line
+
+Here is a summary of the command-line commands provided by `ghost`.
+
+## Storing Secrets
+
+You can store a secret using the `ghost set <keeper>` command where `<keeper>` is the name of a configured secret keeper. If omitted, the master secret keeper will be used.
+
+When setting a secret, you may specify which secret to create or update using either the `--id` or the `--name` options. If `--name` is used, be aware that names are not unique, so if one or more secrets with the given name is found, the first found will be updated.
+
+If `--location` is also provided with `--name`, that may be used to help identify which secret to update out of many.
+
+## Retrieving Secrets
+
+You can retrieve secrets using the `ghost get <keeper>` command where `<keeper>` is the name of a configured secret keeper. If omitted, the master secret keeper will be used.
+
+You can retrieve secrets by `--id`, in which case only one secret will be returned (or none if the identified secret cannot be found).
+
+You may also retrieve secrets by `--name`, which may return multiple secrets.
+
+The `-o` or `--output` option may be used to select an output format. The default output is "table". The `--fields` option may be used to select which fields are displayed. Fields other than `id`, `username`, `password`, `url`, `type`, and `modified-time` may be specified by prefixing the fields with `field-`.
+
+## Synchronizing Secrets
+
+You can copy secrets from one secret store to another using the `ghost sync <from-keeper> <to-keeper>` command. All secrets found in `<from-keeper>` will be copied into `<to-keeper>`.
+
+## Ghost Service
+
+The ghost service allows you to run a secret service process as a grpc server on a unix socket. This can allow you to create a secret service with especially sensitive secrets that are stored locally in memory. For example, you could have a master password for something that you want to enter by hand at login, but don't want to enter it every time you need it.
+
+## Other Operations
+
+Additional commands are provided as well:
+
+* `ghost list keepers` will list all the configurable keeper types
+* `ghost list locations <keeper>` will list all locations for a keeper.
+* `ghost list secrets <keeper> <location>` will list all secrets for a location in a keeper.
 
 # Concepts
 
@@ -71,53 +246,9 @@ A router behaves in the following ways:
  * When saving, copying, or moving a secret, the destination will be mapped to the keeper for the location. So if a secret is saved with Location "Stuff" it will go to the default keeper D. If a secret is copied to location named "Personal" it will go to keeper A. If a secret is moved to location named "API Keys" from "Stuff", it will be removed from default keeper D and added to keeper B.
  * When deleting a secret, the deletion is only performed if the secret's location matches it's route. If the identified secret is found in keeper A in location named "Personal", it will be deleted. But if instead it's in A at location named "Stuff", it will not be deleted. If found in default keeper D, the opposite is true. It would be deleted from "Stuff"  but not "Personal".
 
-# Installation
+# Developer Tools
 
-I currently only provide installation via devtools.
-
-```shell
-go install github.com/zostay/ghost@latest
-```
-
-# Configuration
-
-Configuration is typically stored in a file in your home directory named `.ghost.yaml`. You may specify a different configuration location using the `--config` option.
-
-There are a number of configuration commands under `ghost config` that can help you configure secret keepers. These will verify that the configuration is correct before and after making any changes to your configuration file.
-
-# Storing Secrets
-
-You can store a secret using the `ghost set <keeper>` command where `<keeper>` is the name of a configured secret keeper. If omitted, the master secret keeper will be used.
-
-When setting a secret, you may specify which secret to create or update using either the `--id` or the `--name` options. If `--name` is used, be aware that names are not unique, so if one or more secrets with the given name is found, the first found will be updated. 
-
-If `--location` is also provided with `--name`, that may be used to help identify which secret to update out of many.
-
-# Retrieving Secrets
-
-You can retrieve secrets using the `ghost get <keeper>` command where `<keeper>` is the name of a configured secret keeper. If omitted, the master secret keeper will be used.
-
-You can retrieve secrets by `--id`, in which case only one secret will be returned (or none if the identified secret cannot be found).
-
-You may also retrieve secrets by `--name`, which may return multiple secrets.
-
-The `-o` or `--output` option may be used to select an output format. The default output is "table". The `--fields` option may be used to select which fields are displayed. Fields other than `id`, `username`, `password`, `url`, `type`, and `modified-time` may be specified by prefixing the fields with `field-`.
-
-# Synchronizing Secrets
-
-You can copy secrets from one secret store to another using the `ghost sync <from-keeper> <to-keeper>` command. All secrets found in `<from-keeper>` will be copied into `<to-keeper>`.
-
-# Ghost Service
-
-The ghost service allows you to run a secret service process as a grpc server on a unix socket. This can allow you to create a secret service with especially sensitive secrets that are stored locally in memory. For example, you could have a master password for something that you want to enter by hand at login, but don't want to enter it every time you need it.
-
-# Other Operations
-
-Additional commands are provided as well:
-
- * `ghost list keepers` will list all the configurable keeper types
- * `ghost list locations <keeper>` will list all locations for a keeper.
- * `ghost list secrets <keeper> <location>` will list all secrets for a location in a keeper.
+Developers might instead prefer to use the Golang code directly. This aims at providing a number of useful tools to that end. You'll want to peruse the godoc for the [github.com/zostay/ghost](https://pkg.go.dev/github.com/zostay/ghost) package for details.
 
 # Copyright and License
 

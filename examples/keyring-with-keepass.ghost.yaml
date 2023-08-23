@@ -9,6 +9,8 @@
 #        --prompt
 #
 # And then enter your password.
+#
+# This assumes that you trust the System Keyring to be secure.
 ---
 master: myPasswords
 keepers:
