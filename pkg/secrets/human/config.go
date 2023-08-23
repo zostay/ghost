@@ -16,18 +16,35 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the type name for the human secrets keeper.
 const ConfigType = "human"
 
+// QuestionConfig is the configuration for a single question. Each question
+// behaves as a secret. The contents of the secret are determined by this
+// configuration and user input.
 type QuestionConfig struct {
-	ID      string            `mapstructure:"id" yaml:"id"`
+	// ID is the unique identifier for the question. It is used to reference
+	// the question in the configuration.
+	ID string `mapstructure:"id" yaml:"id"`
+
+	// Presets are the values that will be used to populate the parts of the
+	// secret that are not queried directly from the user via pinentry.
 	Presets map[string]string `mapstructure:"presets" yaml:"presets"`
-	AskFor  []string          `mapstructure:"ask_for" yaml:"ask_for"`
+
+	// AskFor is the list of fields that will be queried from the user via
+	// pinentry.
+	AskFor []string `mapstructure:"ask_for" yaml:"ask_for"`
 }
 
+// Config is the configuration of the human secrets keeper.
 type Config struct {
+	// Questions is the list of questions that will be asked of the user.
 	Questions []QuestionConfig `mapstructure:"questions" yaml:"questions"`
 }
 
+// Validator checks that the configuration is correct for the human secrets
+// keeper. It will check that every question has at least one field to ask
+// for and that no question has a preset that is already being asked for.
 func Validator(_ context.Context, c any) error {
 	cfg, isHuman := c.(*Config)
 	if !isHuman {
@@ -53,6 +70,7 @@ func Validator(_ context.Context, c any) error {
 	return errs.Return()
 }
 
+// Builder creates a new human secrets keeper from the given configuration.
 func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	cfg, isHuman := c.(*Config)
 	if !isHuman {
@@ -138,6 +156,9 @@ func init() {
 	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, cmd)
 }
 
+// SetQuestion adds or updates a question in the given keeper configuration.
+// This is used by the command-line interface to help build up the configuration
+// incrementally.
 func SetQuestion(
 	kc config.KeeperConfig,
 	id string,
@@ -158,6 +179,9 @@ func SetQuestion(
 	kc["questions"] = qs
 }
 
+// RemoveQuestion removes a question from the given keeper configuration. This
+// is used by the command-line interface to help remove configuration
+// incrementally.
 func RemoveQuestion(kc config.KeeperConfig, id string) {
 	qs := kc["questions"].([]map[string]any)
 	if qs == nil {

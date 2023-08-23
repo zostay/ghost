@@ -14,13 +14,20 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the type name for the cache keeper.
 const ConfigType = "cache"
 
+// Config is the configuration for the cache keeper.
 type Config struct {
-	Keeper      string `mapstructure:"keeper"`
-	TouchOnRead bool   `mapstructure:"touch_on_read"`
+	// Keeper is the name of the keeper to cache.
+	Keeper string `mapstructure:"keeper"`
+
+	// TouchOnRead will cause the last modified date of secrets to be updated
+	// on GetSecret* calls.
+	TouchOnRead bool `mapstructure:"touch_on_read"`
 }
 
+// Builder creates a new cache keeper from the given configuration.
 func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	cfg, isCache := c.(*Config)
 	if !isCache {
@@ -35,6 +42,8 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	return New(kpr, cfg.TouchOnRead)
 }
 
+// Validate checks that the configuration is correct for the cache keeper.
+// It will check that the wrapped keeper to cache exists.
 func Validate(ctx context.Context, c any) error {
 	cfg, isCache := c.(*Config)
 	if !isCache {

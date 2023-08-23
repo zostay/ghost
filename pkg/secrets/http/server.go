@@ -8,6 +8,7 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// Server gives a secret keeper a gRPC server interface.
 type Server struct {
 	UnimplementedKeeperServer
 	secrets.Keeper
@@ -15,12 +16,15 @@ type Server struct {
 
 var _ KeeperServer = &Server{}
 
+// NewServer creates a new gRPC server for the wrapped secret keeper.
 func NewServer(keeper secrets.Keeper) *Server {
 	return &Server{
 		Keeper: keeper,
 	}
 }
 
+// ListLocations maps the ListLocations secret keeper call to the gRPC
+// interface.
 func (s *Server) ListLocations(
 	_ *empty.Empty,
 	stream Keeper_ListLocationsServer,
@@ -42,6 +46,7 @@ func (s *Server) ListLocations(
 	return nil
 }
 
+// ListSecrets maps the ListSecrets secret keeper call to the gRPC interface.
 func (s *Server) ListSecrets(
 	location *Location,
 	stream Keeper_ListSecretsServer,
@@ -62,6 +67,8 @@ func (s *Server) ListSecrets(
 	return nil
 }
 
+// GetSecretsByName maps the GetSecretsByName secret keeper call to the gRPC
+// interface.
 func (s *Server) GetSecretsByName(
 	req *GetSecretsByNameRequest,
 	stream Keeper_GetSecretsByNameServer,
@@ -82,6 +89,7 @@ func (s *Server) GetSecretsByName(
 	return nil
 }
 
+// GetSecret maps the GetSecret secret keeper call to the gRPC interface.
 func (s *Server) GetSecret(
 	ctx context.Context,
 	req *GetSecretRequest,
@@ -94,6 +102,7 @@ func (s *Server) GetSecret(
 	return FromSecret(sec), nil
 }
 
+// SetSecret maps the SetSecret secret keeper call to the gRPC interface.
 func (s *Server) SetSecret(
 	ctx context.Context,
 	rpcSec *Secret,
@@ -106,6 +115,7 @@ func (s *Server) SetSecret(
 	return FromSecret(sec), nil
 }
 
+// CopySecret maps the CopySecret secret keeper call to the gRPC interface.
 func (s *Server) CopySecret(
 	ctx context.Context,
 	req *ChangeLocationRequest,
@@ -118,6 +128,7 @@ func (s *Server) CopySecret(
 	return FromSecret(sec), nil
 }
 
+// MoveSecret maps the MoveSecret secret keeper call to the gRPC interface.
 func (s *Server) MoveSecret(
 	ctx context.Context,
 	req *ChangeLocationRequest,
@@ -130,6 +141,7 @@ func (s *Server) MoveSecret(
 	return FromSecret(sec), nil
 }
 
+// DeleteSecret maps the DeleteSecret secret keeper call to the gRPC interface.
 func (s *Server) DeleteSecret(
 	ctx context.Context,
 	req *DeleteSecretRequest,

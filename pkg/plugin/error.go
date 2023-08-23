@@ -6,16 +6,19 @@ import (
 	"strings"
 )
 
+// ValidationError is a collection of errors that occurred during validation.
 type ValidationError struct {
 	Errors []error
 }
 
+// NewValidationError creates a new validation error with the given errors.
 func NewValidationError(errs ...error) *ValidationError {
 	return &ValidationError{
 		Errors: errs,
 	}
 }
 
+// Append adds the given errors to the validation error.
 func (e *ValidationError) Append(errs ...error) {
 	for _, err := range errs {
 		if err == nil {
@@ -31,19 +34,14 @@ func (e *ValidationError) Append(errs ...error) {
 	}
 }
 
+// Prefix adds the given prefix to all errors in the validation error.
 func (e *ValidationError) Prefix(prefix string) {
 	for i, err := range e.Errors {
 		e.Errors[i] = fmt.Errorf("%s: %w", prefix, err)
 	}
 }
 
-func Prefix(err error, prefix string) {
-	var valErr *ValidationError
-	if errors.As(err, &valErr) {
-		valErr.Prefix(prefix)
-	}
-}
-
+// Return returns an error if any errors have been collected or nil.
 func (e *ValidationError) Return() error {
 	if len(e.Errors) == 0 {
 		return nil
@@ -51,6 +49,7 @@ func (e *ValidationError) Return() error {
 	return e
 }
 
+// Error implements the error interface.
 func (e *ValidationError) Error() string {
 	out := &strings.Builder{}
 	_, _ = fmt.Fprintf(out, "validation failed with %d errors:\n", len(e.Errors))
@@ -60,6 +59,7 @@ func (e *ValidationError) Error() string {
 	return out.String()
 }
 
+// Unwrap implements the errors wrapper interface.
 func (e *ValidationError) Unwrap() []error {
 	return e.Errors
 }

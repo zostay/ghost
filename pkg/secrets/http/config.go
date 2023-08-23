@@ -9,6 +9,7 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the type name for the HTTP secrets keeper.
 const ConfigType = "http"
 
 // Config is the configuration of the HTTP secrets keeper.

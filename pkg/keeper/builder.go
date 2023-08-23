@@ -21,6 +21,7 @@ type builderContext struct {
 	c   *config.Config
 }
 
+// WithBuilder adds the secret keeper builder to the context.
 func WithBuilder(ctx context.Context, c *config.Config) context.Context {
 	return &builderContext{
 		ctx: ctx,
@@ -28,18 +29,30 @@ func WithBuilder(ctx context.Context, c *config.Config) context.Context {
 	}
 }
 
+// Deadline returns the time when work done on behalf of this context
+// should be canceled.  Deadline returns ok==false when no deadline is
+// set.  Successive calls to Deadline return the same results.
 func (mb *builderContext) Deadline() (time.Time, bool) {
 	return mb.ctx.Deadline()
 }
 
+// Done returns a channel that's closed when work done on behalf of this
+// context should be canceled.  Done may return nil if this context can
+// never be canceled.  Successive calls to Done return the same value.
 func (mb *builderContext) Done() <-chan struct{} {
 	return mb.ctx.Done()
 }
 
+// Err returns a non-nil error value after Done is closed.  Err returns
+// Canceled if the context was canceled or DeadlineExceeded if the
+// context's deadline passed.  No other values for Err are defined.
 func (mb *builderContext) Err() error {
 	return mb.ctx.Err()
 }
 
+// Value returns the value associated with this context for key, or nil
+// if no value is associated with key.  Successive calls to Value with
+// the same key returns the same result.
 func (mb *builderContext) Value(key any) any {
 	bk := builderKey{}
 	if key == bk {
@@ -48,6 +61,7 @@ func (mb *builderContext) Value(key any) any {
 	return mb.ctx.Value(key)
 }
 
+// Build creates a secret keeper from the configuration in the context.
 func Build(ctx context.Context, name string) (secrets.Keeper, error) {
 	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)
 	if builder.c.Keepers[name] == nil {
@@ -66,6 +80,8 @@ func Build(ctx context.Context, name string) (secrets.Keeper, error) {
 	return nil, errors.New("unable to find the secret keeper factory in context")
 }
 
+// Validate checks that the configuration int he context is correct for the
+// named secret keeper.
 func Validate(ctx context.Context, name string) error {
 	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)
 	if builder.c.Keepers[name] == nil {
@@ -84,6 +100,8 @@ func Validate(ctx context.Context, name string) error {
 	return fmt.Errorf("secret keeper %q: unable to find the secret keeper factory in context", name)
 }
 
+// Exists checks if the named secret keeper exists in the configuration in the
+// context.
 func Exists(ctx context.Context, name string) bool {
 	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)
 	if !isBuilder {
@@ -93,6 +111,10 @@ func Exists(ctx context.Context, name string) bool {
 	return builder.c.Keepers[name] != nil
 }
 
+// Decode decodes the configuration for the named secret keeper into its
+// preferred configuration type. This is useful for tools that want to
+// manipulate the configuration directly. This will have any secret references
+// resolved and lookups performed.
 func Decode(ctx context.Context, name string) (any, error) {
 	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)
 	if !isBuilder {
@@ -102,6 +124,10 @@ func Decode(ctx context.Context, name string) (any, error) {
 	return builder.Decode(name)
 }
 
+// Decode decodes the configuration for the named secret keeper into its
+// preferred configuration type. This is useful for tools that want to
+// manipulate the configuration directly. This will have any secret references
+// resolved and lookups performed.
 func (mb *builderContext) Decode(name string) (any, error) {
 	kc, typBuilder, err := mb.configAndBuilder(name)
 	if err != nil {
@@ -122,6 +148,7 @@ func (mb *builderContext) Decode(name string) (any, error) {
 	return cfg, nil
 }
 
+// Build creates a secret keeper from the configuration.
 func (mb *builderContext) Build(name string) (secrets.Keeper, error) {
 	kc, typBuilder, err := mb.configAndBuilder(name)
 	if err != nil {
@@ -142,6 +169,8 @@ func (mb *builderContext) Build(name string) (secrets.Keeper, error) {
 	return typBuilder.Builder(mb.ctx, cfg)
 }
 
+// Validate checks that the configuration is correct for the named secret
+// keeper.
 func (mb *builderContext) Validate(name string) error {
 	kc, typBuilder, err := mb.configAndBuilder(name)
 	if err != nil {

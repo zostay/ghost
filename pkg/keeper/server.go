@@ -30,6 +30,9 @@ func makeRunName() string {
 	return filepath.Join(tmp, fmt.Sprintf("%s.%d.run", serviceName, uid))
 }
 
+// StartServer starts the keeper server. As of this writing, it will always be
+// configured to run in an automatically named unix socket in the system's temp
+// directory. It will also write a pid file to the same directory.
 func StartServer(logger *log.Logger, kpr secrets.Keeper) error {
 	sockName := makeSocketName()
 	sock, err := net.Listen("unix", sockName)
@@ -82,14 +85,17 @@ func listenForQuit(
 	}
 }
 
+// StopImmediacy is used to indicate how quickly the server should be stopped.
 type StopImmediacy int
 
 const (
-	StopGraceful StopImmediacy = iota
-	StopQuick
-	StopNow
+	StopGraceful StopImmediacy = iota // stop eventually (SIGHUP)
+	StopQuick                         // stop soon (SIGQUIT)
+	StopNow                           // stop now (SIGKILL)
 )
 
+// StopServer stops the keeper server. The given immediacy indicates how quickly
+// the server should be stopped.
 func StopServer(immediacy StopImmediacy) error {
 	pidFile := makeRunName()
 	pidBytes, err := os.ReadFile(pidFile)

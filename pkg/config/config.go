@@ -12,13 +12,17 @@ const configFile = ".ghost.yaml"
 
 var cfgInstance *Config
 
+// KeeperConfig is an unstructured map of configuration values for a keeper.
 type KeeperConfig map[string]any
 
+// Config is the top-level configuration for ghost. When .ghost.yaml is loaded,
+// this is the structure it must match.
 type Config struct {
 	MasterKeeper string                  `yaml:"master"`
 	Keepers      map[string]KeeperConfig `yaml:"keepers"`
 }
 
+// configPath locates teh configuration file.
 func configPath(requestedPath string) (string, error) {
 	if requestedPath != "" {
 		requestedDir := filepath.Dir(requestedPath)
@@ -37,12 +41,14 @@ func configPath(requestedPath string) (string, error) {
 	return filepath.Join(homeDir, configFile), nil
 }
 
+// New creates a new, empty configuration.
 func New() *Config {
 	return &Config{
 		Keepers: map[string]KeeperConfig{},
 	}
 }
 
+// Instance returns the singleton instance of the configuration.
 func Instance() *Config {
 	if cfgInstance != nil {
 		return cfgInstance
@@ -52,6 +58,8 @@ func Instance() *Config {
 	return cfgInstance
 }
 
+// Load loads the configuration from the given path. If the path is empty, the
+// default path is used.
 func (c *Config) Load(requestedPath string) error {
 	cp, err := configPath(requestedPath)
 	if err != nil {
@@ -79,6 +87,8 @@ func (c *Config) Load(requestedPath string) error {
 	return nil
 }
 
+// Save saves the configuration to the given path. If the path is empty, the
+// default path is used.
 func (c *Config) Save(requestedPath string) error {
 	cp, err := configPath(requestedPath)
 	if err != nil {

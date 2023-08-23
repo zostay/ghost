@@ -13,23 +13,28 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// Question defines the questions to ask for a secret as well as the preset
+// values to use to fill in the rest.
 type Question struct {
 	preset map[string]string
 	flds   []string
 }
 
+// Human is a secret keeper that asks the user for the secrets.
 type Human struct {
 	secrets map[string]Question
 }
 
 var _ secrets.Keeper = &Human{}
 
+// New creates a new human secrets keeper.
 func New() *Human {
 	return &Human{
 		secrets: make(map[string]Question, 1),
 	}
 }
 
+// AddQuestion adds a question to the human secrets keeper.
 func (h *Human) AddQuestion(
 	id string,
 	askFor []string,
@@ -41,10 +46,14 @@ func (h *Human) AddQuestion(
 	}
 }
 
+// ListLocations returns the list of locations from the human secrets keeper.
+// This always just returns "". As of this writing, you should only use an empty
+// location with the human secret keeper.
 func (h *Human) ListLocations(_ context.Context) ([]string, error) {
 	return []string{""}, nil
 }
 
+// ListSecrets returns an empty list.
 func (h *Human) ListSecrets(_ context.Context, _ string) ([]string, error) {
 	return []string{}, nil
 }
@@ -73,6 +82,8 @@ func setField(
 	return nil
 }
 
+// GetSecret retrieves the secret with the given ID by asking the user for the
+// secret information as defined by the identified question configuration.
 func (h *Human) GetSecret(_ context.Context, id string) (secrets.Secret, error) {
 	title := cases.Title(language.English)
 	if def, defExists := h.secrets[id]; defExists {
@@ -108,6 +119,10 @@ func (h *Human) GetSecret(_ context.Context, id string) (secrets.Secret, error) 
 	return nil, secrets.ErrNotFound
 }
 
+// GetSecretsByName retrieves the secret with the given name by asking the user
+// for the secret information as defined by the identified question
+// configuration. As ID and name are treated the same by the human secret
+// keeper, this is essentially identical to GetSecret.
 func (h *Human) GetSecretsByName(ctx context.Context, name string) ([]secrets.Secret, error) {
 	sec, err := h.GetSecret(ctx, name)
 	if err != nil {
@@ -116,18 +131,22 @@ func (h *Human) GetSecretsByName(ctx context.Context, name string) ([]secrets.Se
 	return []secrets.Secret{sec}, nil
 }
 
+// SetSecret fails with an error.
 func (h *Human) SetSecret(_ context.Context, secret secrets.Secret) (secrets.Secret, error) {
 	return nil, errors.New("read only")
 }
 
+// CopySecret fails with an error.
 func (h *Human) CopySecret(_ context.Context, id, location string) (secrets.Secret, error) {
 	return nil, errors.New("read only")
 }
 
+// MoveSecret fails with an error.
 func (h *Human) MoveSecret(_ context.Context, id, location string) (secrets.Secret, error) {
 	return nil, errors.New("read only")
 }
 
+// DeleteSecret fails with an error.
 func (h *Human) DeleteSecret(_ context.Context, id string) error {
 	return errors.New("read only")
 }
