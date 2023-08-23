@@ -35,7 +35,7 @@ keepers:
 
 This configures `mypasswords` as the default (the "master") secret keeper. Without this, you'd need to set `--keeper` on every run of `ghost` to select your keeper. It then configures that keeper to use the lastpass secret keeper driver and gives it a username and password. **Storing your master password in plaintext in this configuration is stupid, so don't.** A much better configuration is shown next. However, for those who just want to skip to the end and see the useful bits. With this configuration (assuming the username and password match a real account), you could run these commands:
 
-```shell
+```
 % ghost set --name=github.com --username=some.email@example.com --prompt
 password: 
 % ghost get --name=github.com
@@ -199,52 +199,298 @@ Basically, each item of data stored is called a **secret**. A secret has a numbe
 
 ## Keepers
 
-A **secret keeper** is a configured storage for secrets. This may be:
+A **secret keeper** is a configured storage for secrets. The keepers are divided into two groups, primary secret keepers and secondary, which are used to provide additional services to other keepers. 
 
- * An in-memory database (only useful with the ghost service)
- * An grpc server (for accessing secrets provided by the ghost service)
- * The system keychain
- * A Keepass database 
- * A local YAML file (for insecure storage)
- * A LastPass account
- * Intermediate Seq Service
- * Intermediate Router Service
+### Primary Keepers
 
-Other service may be added in the future.
+The following primary secret keeper types are provided:
 
-### Seq
+ * `http` - The http secret keeper accesses secrets provided by the ghost gRPC service. The ghost service can be run with the `ghost service start` command and used to wrap any keeper in the given configuration. As of this writing, the http keeper may only be used on a local machine as all communication is performed over a unix socket.
+ * `human` - The human secret keeper provides a means of asking the person at the keyboard to enter a secret. A human keeper is configured with a number of questions, each acting as a secret the user is expected to supply upon request.
+ * `keepass` - The Keepass secret keeper loads and stores secrets in a local Keepass database file. You will need to provide the Keepass secret keeper the path to the file as well as the master password for encrypting and decrypting the file.
+ * `keyring` - The keyring secret keeper loads and stores passwords in the system keyring. This should work on macOS, Windows, Linux, and BSD. On macOS it accesses the system keyring using the `security` command. Similarly, it uses the Windows OS keyring on Windows. On Linux and BSD, it uses dbus to communicate with whatever secret service is installed, usually GNOME Keyring. 
+ * `lastpass` - The LastPass secret keeper uses the LastPass API to access secrets. The secrets are downloaded from the online store and then decrypted locally on get and encrypted locally and set to the online store during set.
+ * `low` - The low security secret keeper stores secrets in a local YAML file in plaintext. This is obviously only suitable for secrets that are not very secure or on a system you are very confident in.
+ * `memory` - The memory secret keeper will hold a secret encrypted in memory for the duration of the process. Used with the ghost command, this is not very useful. However, it can be useful as a memory store within the ghost service or embedded in an application. The encryption used doesn't guarantee much in the way of safety as the key is also stored in memory, so it may even be considered superfluous.
 
-A **seq** keeper is one that contains a list of other keepers. The keeper within a seq must not contain itself. To explain how this works, let's say we define a seq keeper containing three keepers named A, B, and C in that order.
+### Secondary Keepers
 
- * When listing locations for this seq, all locations from all keepers, A, B, and C, in the list will be returned.
- * When listing secrets in a location, secrets in A, B, and C for that location will be returned.
- * When retrieving a secret, the keeper A will be checked first. If A has that secret, it will be returned. If A does not, then B will be checked. If B has the secret, it is returned. Finally, if neither A or B has the requested secret, C is checked and the secret is returned from C if found there.
- * When getting secrets by name, all secret keepers, A, B, and C, with a secret with the given name will return its secrets.
- * When saving, copying, or moving a secret, the write will always happen to the first keeper, in this case A, in the list.
- * When deleting, the deletion will occur from the first matching secret keeper, similar to how retrieving a secret works.
+The secondary secret keepers exist to provide additional services on top of another secret keeper store. Here is a list of secondary keepers that are provided.
 
-### Router
+ * `cache` - The cache secret keeper is based on the memory secret keeper and wraps some other keeper. Whenever the keeper is used for getting a secret, the secret is saved locally. A `cache` keeper does not permit any write operations except delete, which just deletes a secret from the cache. It does not delete the secret from the wrapped store. This is another keeper that is not much use outside of either the ghost service or embedded application.
+ * `router` - The router secret keeper combined other secret keepers into a single logical keeper. It uses location as the means by which to decide which keeper to use when getting and storing secrets. If a location that does not match any of the configured routes is used, then a default keeper is used to store that secret.
+ * `seq` - The sequential secret keeper combines multiple secret keepers into a single logical keeper. When getting secrets, each keeper is checked for that secret in turn and the first secret found to match is returned. When setting, only the first secret keeper in the sequence is modified.
 
-A **router** keeper is one that maps locations to keepers. It may also have a default keeper. To help understand how this works, let's consider the following router:
+Other secret keepers may be added in the future.
 
+# Example Keeper Configuration
+
+## cache
+
+Caches secrets on get. Does not permit setting, copying, or moving of secrets. Deletes will only remove the secret from the cache, not the wrapped keeper.
+
+```yaml
+keepers:
+  my-cache:
+    type: cache
+    keeper: my-other-keeper
+    touch_on_read: false
 ```
-A: Personal, Work
-B: API Keys
-C: SSNs, Bank Accounts
-D: Everything Else
+
+**Type:** `cache`
+
+**Required Fields:**
+
+ * `keeper` - The name of the keeper to wrap. This keeper must exist in the configuration.
+
+**Optional Fields:**
+
+ * `touch_on_read` - If true, the last modified time of the secret will be updated every time the secret is read. This is useful for keeping a secret alive in the cache for a longer based on use. The default is false.
+
+## http
+
+Accesses secrets by contacting the ghost service over a local unix socket. The unix socket is automatically discovered. No configuration of this keeper is possible at this time.
+
+```yaml
+keepers:
+  my-http:
+    type: http
 ```
 
-That is, keeper A is used for locations named "Personal" and "Work", B is used for locations named "API Keys", and so on. D is the default keeper.
+**Type:** `http`
 
-A router behaves in the following ways:
+**Required Fields:**
 
- * When listing locations for a seq, all locations in the default keeper D are returned as well the mapped locations "Personal", "Work", "API Keys", "SSNs", and "Bank Accounts".
- * When listing secrets in location "Personal", only secrets found in Keeper A will be returned and only those that have location "Personal" in that keeper.
- * When listing secrets in location "Stuff", only secrets found in the default keeper D will be returned and only those that have location "Stuff" in that keeper.
- * When retrieving a secret, the secret can only be returned from the keeper to which it belongs and only if the identified secret belongs to the correct location. For example, if a secret is retrieved and found in keeper C but in location "Stuff", no secret will be returned. If it is found in "SSNs" or "Bank Accounts", it will be returned. If a secret is found in the default keeper D in location "API Keys", it will not be returned, but will be returned if found in location "Stuff".
- * When getting secrets by name, every keeper in the router list will be checked for secrets by that name. However, secrets found in keeper A must be in locations named "Personal" or "Work". Secrets found in B must be in the location named "API Keys". The secrets found in C must be in the locations named "SSNs" or "Bank Accounts". The secrets found in the default keeper D must be found in locations that are not named "Personal", "Work", "API Keys", "SSNs", and "Bank Accounts".
- * When saving, copying, or moving a secret, the destination will be mapped to the keeper for the location. So if a secret is saved with Location "Stuff" it will go to the default keeper D. If a secret is copied to location named "Personal" it will go to keeper A. If a secret is moved to location named "API Keys" from "Stuff", it will be removed from default keeper D and added to keeper B.
- * When deleting a secret, the deletion is only performed if the secret's location matches it's route. If the identified secret is found in keeper A in location named "Personal", it will be deleted. But if instead it's in A at location named "Stuff", it will not be deleted. If found in default keeper D, the opposite is true. It would be deleted from "Stuff"  but not "Personal".
+None
+
+## human
+
+Asks the person at the keyboard to supply the secret by putting up a password dialog.
+
+```yaml
+keepers:
+    my-human:
+      type: human
+      questions:
+        - id: LastPass Password
+          ask_for: [ password ]
+          presets: 
+            username: some.email@example.com
+```
+
+**Type:** `human`
+
+**Required Fields:**
+
+It is permitted to have no `questions` defined.
+
+ * `questions` - A list of questions to ask the user. Each question must have an `id` and a list of `ask_for` fields. The `id` is the name of the secret to ask for. The `ask_for` fields are the fields to ask for. The `ask_for` fields may be any of `password`, `username`, `url`, `location`, `name`, `type`, or other names for additional fields, if supported by the secret keeper. The `presets` are optional and allow for preset values to be injected into the secret.
+
+## keepass
+
+Accesses secrets using a local Keepass database file.
+
+```yaml
+keepers:
+  my-keepass:
+    type: keepass
+    path: /home/user/keepass.kdbx
+    master_password:
+      __SECRET__:
+        keeper: pinentry
+        secret: personal-keepass.kdbx-master-password
+        field: password
+```
+
+**Type:** `keepass`
+
+**Required Fields:**
+
+ * `path` - The path to the Keepass database file.
+ * `master_password` - The master password for the Keepass database file. This may be a `__SECRET__` reference value.
+
+## keyring
+
+Accesses secrets through the system keyring.
+
+```yaml
+keepers:
+  my-keyring:
+    type: keyring
+    service_name: ghost
+```
+
+**Type:** `keyring`
+
+**Required Fields:**
+
+ * `service_name` - The name of the service to use in the keyring.
+
+## lastpass
+
+Accesses secrets through a LastPass vault.
+
+```yaml
+keepers:
+  my-lastpass:
+    type: lastpass
+    username: some.email@example.com
+    password:
+      __SECRET__:
+        keeper: pinentry
+        secret: LastPass Password
+        field: password
+```
+
+**Type:** `lastpass`
+
+**Required Fields:**
+
+ * `username` - The username to use to access the LastPass vault.
+ * `password` - The password to use to access the LastPass vault. This may be a `__SECRET__` reference value.
+
+## low
+
+Stores secrets in a local YAML file in plaintext. This is not secure.
+
+```yaml
+keepers:
+  my-low:
+    type: low
+    path: /home/user/ghost.yaml
+```
+
+**Type:** `low`
+
+**Required Fields:**
+
+ * `path` - The path to the YAML file to use.
+
+## memory
+
+Stores secrets in memory. This is only useful when embedded in another application or via the ghost gRPC service.
+
+```yaml
+keepers:
+  my-memory:
+    type: memory
+```
+
+**Type:** `memory`
+
+**Required Fields:**
+
+None
+
+## policy
+
+Applies policies to the secrets stored in another keeper. Currently, this includes:
+
+ * A lifetime policy which can be used to expire secrets after a certain amount of time.
+ * An acceptance policy that can be used to either allow or deny access to secrets based on matching rules.
+
+For the lifetime policy to operate, you must either run the `ghost enforce-policy` command or run the ghost service with either the `--enforce-all-policies` or `--enforce-policy` options. Enforcement works by walking all secrets in a keeper and checking the last modified date of each against the applicable rules and defaults. If the secret is too old, it is deleted. If a secret keeper does not implement the `List*` methods that allow for walking, lifetime cannot be enforced.
+
+```yaml
+keepers:
+  my-policy:
+    type: policy
+    keeper: my-other-keeper
+    lifetime: 48h
+    acceptance: allow
+    rules:
+      - location: Work
+        acceptance: deny
+      - location: Pers*
+        acceptance: deny
+      - username: /\w+@example\.com/
+        lifetime: 10m
+```
+
+**Type:** `policy`
+
+**Required Fields:**
+
+ * `keeper` - The name of the keeper to wrap. This keeper must exist in the configuration.
+ * `acceptance` - The default acceptance policy. This may be `allow` or `deny`.
+ * `rules` - The list of matches and rules to apply for each rule. Rules are matched in the order given. See below for details.
+
+**Optional Fields:**
+
+ * `lifetime` - The default lifetime for secrets. This may be a duration string or a number of seconds. If not provided, the lifetime is not limited.
+
+**Rules:**
+
+Each rule must define either an acceptance or lifetime policy:
+
+ * `acceptance` - The acceptance policy for this rule. This may be `allow` or `deny` or `inherit`.
+ * `lifetime` - The lifetime for this rule. This may be a duration string or a number of seconds. If not provided, the lifetime is not limited.
+
+Each rule must also provide one or more matching filters:
+
+ * `location` - The location to match.
+ * `name` - The name to match.
+ * `username` - The username to match.
+ * `type` - The type to match.
+ * `url` - The URL to match.
+
+Each match may be one of the following types of value:
+
+ * A string. This is matched directly.
+ * A glob. This is matched using typical glob pattern rules where `*` matches many characteres and `?` matches one. Primarily useful for matching prefixes or suffixes.
+ * A regular expression. This uses the [Google Re2](https://github.com/google/re2/wiki/Syntax) syntax. To use a regular expression the value must be a string that starts with `/` and ends with `/`. For example, `/^foo/` matches any string that starts with "foo".
+
+## router
+
+Routes secrets to other keepers based on location. If a secret is stored in a location that matches a route, the secret is stored in the keeper for that route. If no route matches, the secret is stored in the default keeper. The same is true for retrieval.
+
+```yaml
+keepers:
+  my-router:
+    type: router
+    default: my-default-keeper
+    routes:
+      - locations: [ Personal ]
+        keeper: my-personal-keeper
+      - locations: [ Work ]
+        keeper: my-work-keeper
+      - locations: [ API-Keys, Robots ]
+        keeper: my-api-keeper
+```
+
+**Type:** `router`
+
+**Required Fields:**
+
+ * `default` - The name of the keeper to use for secrets that do not match any route. This keeper must exist in the configuration.
+ * `routes` - The list of routes to use. See below for details.
+
+**Routes:**
+
+Each route must define a list of locations and a keeper:
+
+ * `locations` - The list of locations to match. If a secret is stored in a location that matches one of these, the secret is stored in the keeper for this route.
+ * `keeper` - The name of the keeper to use for secrets that match this route. This keeper must exist in the configuration.
+
+## seq
+
+Stores secrets in a sequence of keepers. When getting a secret, the first keeper in the sequence that has the secret is used. When setting a secret, the first keeper in the sequence is used. When deleting a secret, the first keeper in the sequence that has the secret is used.
+
+```yaml
+keepers:
+  my-seq:
+    type: seq
+    keepers:
+      - my-first-keeper
+      - my-second-keeper
+      - my-third-keeper
+```
+
+**Type:** `seq`
+
+**Required Fields:**
+
+ * `keepers` - The list of keepers to use in the sequence. Each keeper must exist in the configuration.
 
 # Developer Tools
 
