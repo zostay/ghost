@@ -108,7 +108,7 @@ func (mb *builderContext) Decode(name string) (any, error) {
 		return nil, err
 	}
 
-	_, err = mb.resolveSecretRefsInMap(kc, true)
+	kc, err = mb.resolveSecretRefsInKeeperConfig(kc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (mb *builderContext) Build(name string) (secrets.Keeper, error) {
 		return nil, err
 	}
 
-	_, err = mb.resolveSecretRefsInMap(kc, true)
+	kc, err = mb.resolveSecretRefsInKeeperConfig(kc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (mb *builderContext) Validate(name string) error {
 		return err
 	}
 
-	_, err = mb.resolveSecretRefsInMap(kc, false)
+	kc, err = mb.resolveSecretRefsInKeeperConfig(kc, false)
 	if err != nil {
 		return err
 	}
@@ -184,7 +184,27 @@ func (mb *builderContext) configAndBuilder(name string) (kc config.KeeperConfig,
 	return
 }
 
-func (mb *builderContext) resolveSecretRefsInMap(kc config.KeeperConfig, lookup bool) (any, error) {
+func (mb *builderContext) resolveSecretRefsInKeeperConfig(
+	kc config.KeeperConfig,
+	lookup bool,
+) (config.KeeperConfig, error) {
+	xkc, err := mb.resolveSecretRefsInMap(kc, lookup)
+	if err != nil {
+		return nil, err
+	}
+
+	if kc, isKeeperConfig := xkc.(config.KeeperConfig); isKeeperConfig {
+		return kc, nil
+	}
+
+	return nil, errors.New("unable to resolve secret references in keeper config")
+}
+
+func (mb *builderContext) resolveSecretRefsInMap(
+	kc config.KeeperConfig,
+	lookup bool,
+) (any, error) {
+	cp := make(config.KeeperConfig, len(kc))
 	for k, v := range kc {
 		if k == config.SecretRefKey {
 			var ref config.SecretRef
@@ -245,9 +265,12 @@ func (mb *builderContext) resolveSecretRefsInMap(kc config.KeeperConfig, lookup 
 				return nil, err
 			}
 
-			kc[k] = lVal
+			cp[k] = lVal
+			continue
 		}
+
+		cp[k] = v
 	}
 
-	return kc, nil
+	return cp, nil
 }
