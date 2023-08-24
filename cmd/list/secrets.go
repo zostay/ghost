@@ -12,7 +12,7 @@ import (
 
 var (
 	SecretsCmd = &cobra.Command{
-		Use:   "secrets",
+		Use:   "secrets --location=<loc>",
 		Short: "List secrets",
 		Args:  cobra.NoArgs,
 		Run:   RunListSecrets,
@@ -28,6 +28,10 @@ func init() {
 	SecretsCmd.Flags().StringVar(&location, "location", "", "The location to list secrets from")
 	SecretsCmd.Flags().StringSliceVar(&flds, "fields", []string{}, "The fields to display")
 	SecretsCmd.Flags().BoolVar(&showPassword, "show-password", false, "Show the password in the output")
+
+	if err := cobra.MarkFlagRequired(SecretsCmd.Flags(), "location"); err != nil {
+		panic(err)
+	}
 }
 
 func RunListSecrets(cmd *cobra.Command, args []string) {

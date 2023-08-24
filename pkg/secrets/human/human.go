@@ -6,10 +6,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/gopasspw/pinentry"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	"github.com/zostay/ghost/pkg/keeper"
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
@@ -91,7 +91,7 @@ func (h *Human) GetSecret(_ context.Context, id string) (secrets.Secret, error) 
 			secrets.WithID(id),
 			secrets.WithLastModified(time.Now()))
 		for _, fld := range def.flds {
-			v, err := pinEntry(
+			v, err := keeper.PinEntry(
 				"Enter "+fld,
 				"Asking for "+fld+" for "+id,
 				title.String(fld),
@@ -149,24 +149,4 @@ func (h *Human) MoveSecret(_ context.Context, id, location string) (secrets.Secr
 // DeleteSecret fails with an error.
 func (h *Human) DeleteSecret(_ context.Context, id string) error {
 	return errors.New("read only")
-}
-
-// pinEntry is a tool that makes it easier to display a dialog prompting the
-// user for a password.
-func pinEntry(title, desc, prompt, ok string) (string, error) {
-	pi, err := pinentry.New()
-	if err != nil {
-		return "", err
-	}
-
-	_ = pi.Set("title", title)
-	_ = pi.Set("desc", desc)
-	_ = pi.Set("prompt", prompt)
-	_ = pi.Set("ok", ok)
-	x, err := pi.GetPin()
-	if err != nil {
-		return "", err
-	}
-
-	return string(x), nil
 }

@@ -19,12 +19,13 @@ var (
 		Run:   RunSet,
 	}
 
-	username, password         string
-	prompt                     bool
-	typ                        string
-	moveLocation, copyLocation string
-	url                        string
-	setFlds                    map[string]string
+	username, password     string
+	prompt                 bool
+	location               string
+	typ                    string
+	moveSecret, copySecret bool
+	url                    string
+	setFlds                map[string]string
 )
 
 func init() {
@@ -32,8 +33,9 @@ func init() {
 	setCmd.Flags().StringVar(&password, "password", "", "The new password to set")
 	setCmd.Flags().BoolVar(&prompt, "prompt", false, "Prompt for the password")
 	setCmd.Flags().StringVar(&typ, "type", "", "The new type of secret to set")
-	setCmd.Flags().StringVar(&moveLocation, "move", "", "Move the secret to a new location")
-	setCmd.Flags().StringVar(&copyLocation, "copy", "", "Copy the secret to a new location")
+	setCmd.Flags().StringVar(&location, "location", "", "The location to give the secret")
+	setCmd.Flags().BoolVar(&moveSecret, "move", false, "Move the secret to a new location")
+	setCmd.Flags().BoolVar(&copySecret, "copy", false, "Copy the secret to a new location")
 	setCmd.Flags().StringVar(&url, "url", "", "The new URL to set")
 	setCmd.Flags().StringToStringVar(&setFlds, "field", map[string]string{}, "The new fields to set")
 }
@@ -47,8 +49,26 @@ func RunSet(cmd *cobra.Command, args []string) {
 		s.Logger.Panic("Must specify either --id or --name.")
 	}
 
-	if moveLocation != "" && copyLocation != "" {
+	if moveSecret && copySecret {
 		s.Logger.Panic("Cannot specify both --move and --copy.")
+	}
+
+	var opVerb string
+	switch {
+	case moveSecret:
+		opVerb = "moving"
+	case copySecret:
+		opVerb = "copying"
+	default:
+		opVerb = "saving"
+	}
+
+	if (moveSecret || copySecret) && location == "" {
+		s.Logger.Panic("You must specify a --location to place the secret while %s.", opVerb)
+	}
+
+	if password != "" && prompt {
+		s.Logger.Panic("Cannot specify both --password and --prompt.")
 	}
 
 	c := config.Instance()
@@ -88,9 +108,15 @@ func RunSet(cmd *cobra.Command, args []string) {
 	var sec secrets.Secret
 	switch len(secs) {
 	case 0:
-		s.Logger.Panic("No matching secret found.")
+		if moveSecret || copySecret {
+			s.Logger.Panicf("The secret is new. No %s allowed.", opVerb)
+		}
+		sec = secrets.NewSecret("", "", "", secrets.WithLocation(location))
 	case 1:
 		sec = secs[0]
+		if location != "" && location != sec.Location() && !moveSecret && !copySecret {
+			s.Logger.Panicf("Cannot change location when %s. You must specify --move or --copy.", opVerb)
+		}
 	default:
 		s.Logger.Panic("More than one matching secret found. Use --id to specify which one to update.")
 	}
@@ -102,7 +128,11 @@ func RunSet(cmd *cobra.Command, args []string) {
 		sec = secrets.SetPassword(sec, password)
 	}
 	if prompt {
-		panic("not implemented")
+		pw, err := keeper.PinEntry(sec.Name(), "Password", "Please enter the new password", "Set Password")
+		if err != nil {
+			s.Logger.Panicf("Unable to prompt for password: %v", err)
+		}
+		sec = secrets.SetPassword(sec, pw)
 	}
 	if typ != "" {
 		sec = secrets.SetType(sec, typ)
@@ -124,15 +154,15 @@ func RunSet(cmd *cobra.Command, args []string) {
 		s.Logger.Panic(err)
 	}
 
-	if moveLocation != "" {
-		newSec, err = kpr.MoveSecret(ctx, newSec.ID(), moveLocation)
+	if moveSecret {
+		newSec, err = kpr.MoveSecret(ctx, newSec.ID(), location)
 		if err != nil {
 			s.Logger.Panic(err)
 		}
 	}
 
-	if copyLocation != "" {
-		newSec, err = kpr.CopySecret(ctx, newSec.ID(), copyLocation)
+	if copySecret {
+		newSec, err = kpr.CopySecret(ctx, newSec.ID(), location)
 		if err != nil {
 			s.Logger.Panic(err)
 		}

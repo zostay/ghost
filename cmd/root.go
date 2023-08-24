@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	rootCmd = &cobra.Command{
+	RootCmd = &cobra.Command{
 		Use:              "ghost",
 		Short:            "ghost is a tool for managing personal secrets",
 		PersistentPreRun: s.RunRoot,
@@ -17,7 +17,7 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(
+	RootCmd.AddCommand(
 		configCmd,
 		deleteCmd,
 		enforcePolicyCmd,
@@ -28,9 +28,9 @@ func init() {
 		syncCmd,
 	)
 
-	rootCmd.PersistentFlags().StringVarP(&s.ConfigFile, "config", "c", "", "path to the ghost configuration file")
+	RootCmd.PersistentFlags().StringVarP(&s.ConfigFile, "config", "c", "", "path to the ghost configuration file")
 }
 
 func Execute() {
-	cobra.CheckErr(rootCmd.Execute())
+	cobra.CheckErr(RootCmd.Execute())
 }

@@ -145,39 +145,161 @@ See the `examples` folder of this project for additional sample configurations.
 
 Here is a summary of the command-line commands provided by `ghost`.
 
-## Storing Secrets
+All commands provide a `--config=<path>` option for specifying the location of the configuration file. If not specified, the file is located at `$HOME/.ghost.yaml`.
 
-You can store a secret using the `ghost set <keeper>` command where `<keeper>` is the name of a configured secret keeper. If omitted, the master secret keeper will be used.
+## Secret Commands
 
-When setting a secret, you may specify which secret to create or update using either the `--id` or the `--name` options. If `--name` is used, be aware that names are not unique, so if one or more secrets with the given name is found, the first found will be updated.
+All the secret commands will take a `--keeper=<name>` option that will select the secret keeper to perform the action upon. If not given, it will use the `master` secret keeper. If there is no `master` secret keeper, bad stuff happens (mostly lots of whining).
 
-If `--location` is also provided with `--name`, that may be used to help identify which secret to update out of many.
+### set
 
-## Retrieving Secrets
+```
+ghost set --name=github.com \
+    --username=some.email@example.com \
+    --prompt \
+    --location=Work
+```
 
-You can retrieve secrets using the `ghost get <keeper>` command where `<keeper>` is the name of a configured secret keeper. If omitted, the master secret keeper will be used.
+This will check to see if there is a secret named `github.com`. If that secret exists, it will update it with the given values. If it does not exist, a new secret will be created. As `name` is not guaranteed to be unique, it will result in an error if multiple secrets named `github.com` are discovered. In which case, you will need to specify the secret by `--id` instead to perform the update.
 
-You can retrieve secrets by `--id`, in which case only one secret will be returned (or none if the identified secret cannot be found).
+If the secret already exists and you want to change locations, you will need to specify either `--move` or `--copy`.
 
-You may also retrieve secrets by `--name`, which may return multiple secrets.
+When updating a password from the command-line, it is recommended that you use `--prompt` to request the password to avoid inadvertently placing the secret on in your shell history.
 
-The `-o` or `--output` option may be used to select an output format. The default output is "table". The `--fields` option may be used to select which fields are displayed. Fields other than `id`, `username`, `password`, `url`, `type`, and `modified-time` may be specified by prefixing the fields with `field-`.
+### get
 
-## Synchronizing Secrets
+```
+ghost get --name=github.com
+ghost get --id=1238588388299
+```
 
-You can copy secrets from one secret store to another using the `ghost sync <from-keeper> <to-keeper>` command. All secrets found in `<from-keeper>` will be copied into `<to-keeper>`.
+Retrieves one or more secrets from the database. Be aware that `name` is not gauranteed to be unique so this may return more than one secret. If you want just one, you may use with the `--one` option to return just the first found or `--id` to specify the ID of the secret to return (though, this has limited utility since these IDs are not user-friendly and might change on write, depending on the secret keeper).
 
-## Ghost Service
+You may find the `--output=password` command useful if using this with scripts. Be sure to also include `--show-password` to enable the password being output.
 
-The ghost service allows you to run a secret service process as a grpc server on a unix socket. This can allow you to create a secret service with especially sensitive secrets that are stored locally in memory. For example, you could have a master password for something that you want to enter by hand at login, but don't want to enter it every time you need it.
+### delete
 
-## Other Operations
+```
+ghost delete --name=github.com
+```
 
-Additional commands are provided as well:
+This will delete exactly one secret from the secret keeper. The `name` field is not guaranteed to be unique, so if multiple secrets have the same name, this operation will refuse to complete. You will need to delete by `--id` instead in that case.
 
-* `ghost list keepers` will list all the configurable keeper types
-* `ghost list locations <keeper>` will list all locations for a keeper.
-* `ghost list secrets <keeper> <location>` will list all secrets for a location in a keeper.
+## Additional Secret Commands
+
+### enforce-policy
+
+```
+ghost enforce-policy myPolicyKeeper
+```
+
+This will enforce lifetime policies on a given keeper. If you want to ensure that certain passwords in a store are cleared after some time period, you must employ some policy enforcement mechanism. This is the most direct. It will immediately list all secrets and any that have a last modified time that is too old according to policy, will be deleted.
+
+If using this method, you may want to use cron or some other job running tool to run this command periodically.
+
+### sync
+
+```
+ghost sync myLastPass myKeepass
+```
+
+This will perform a synchronization process that will copy all secrets in teh first secret keeper to the second. If the `--delete` option is specified, then it will also delete any secrets from the second that are not found in the first.
+
+## List Commands
+
+### list keepers
+
+```
+ghost list keepers
+```
+
+This command will list all the keeper types available to the command.
+
+### list locations
+
+```
+ghost list locations
+```
+
+This will list all the location names available to the secret keeper.
+
+Like the secret commands, you may use the `--keeper=<name>` option to specify the keeper configuration to use or omit it to use the `master` keeper configuration.
+
+### list secrets
+
+```
+ghost list secrets --location=Work
+```
+
+This will list all the secrets in the given location.
+
+Like the secret commands, you may use the `--keeper=<name>` option to specify the keeper configuration to use or omit it to use the `master` keeper configuration.
+
+## Service Commands
+
+### service start
+
+```
+ghost service start --keeper=myPasswordService --enforce-all-policies
+```
+
+This will start the password service running in the foreground. It can be set to run against any keeper specified with the `--keeper=<name>` setting or it will use the `master` keeper configuration.
+
+The `--enforce-all-policies` option will cause the server to locate all policy secret keepers and enforce all lifetime policies periodically. The period is determined by the value defined in `--enforcement-period`, which defaults to every minute. If you only want to enforce some of your policies this way, you can specify the policies using the `--enforce-policy` option instead.
+
+### service stop
+
+```
+ghost service stop
+```
+
+This will locate the running ghost service and stop it. It will attempt a graceful stop by default. If you want to ask it to stop immediately you may specify the `--quit` option. If you want to force stop, use the `--kill` option.
+
+## Configuration Commands
+
+All the configuration commands (actually all the commands) will validate the configuration file on start to ensure the configuration is in a reasonable state before modifications are attempted. It will also check that the modified configuration file will be valid upon write. If it won't be after making the changes your request (e.g., you use `ghost config delete` to delete a keeper that some other secret keeper refers to), then it won't write the configuration changes to the file.
+
+### config set
+
+```
+ghost config set <keeper-type> <keeper-name> [ flags ]
+```
+
+You will need to look at the usage message for each of the keeper type sub-commands for details. Each works a little different. However, there are some common features. All of these commands will add or modify a keeper configuration in the configuration file.
+
+Sometimes an option will be provided in a special `--*-secret` variant. This allows you to specify a `__SECRET__` reference in the configuration for that particular setting from the command-line. To use it, you will pass a colon-separated list of the relevant fields: keeper, secret, and field.
+
+For example, to set the password to a secret reference in the a Keepass secret keeper, you could do something like this:
+
+```
+ghost config set keepass myPasswords \
+    --path=$HOME/keepass.kdbx \
+    --master-password-secret=keyring:keepass:password
+```
+
+### config delete
+
+```
+ghost config delete <keeper-name>
+```
+
+Removes a keeper configuration from the configuration.
+
+### config get
+
+```
+ghost config get <keeper-name>
+```
+
+This will resolve the configuration and output it on the command line (with password fields elided).
+
+### config list
+
+```
+ghost confg list
+```
+
+This is like get, but performs the operaiton for every keeper configuration in the file.
 
 # Concepts
 

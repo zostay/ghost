@@ -77,7 +77,7 @@ func listenForQuit(
 	stopped := 0
 	for sig := range sigs {
 		stopped++
-		if stopped > 2 || sig == syscall.SIGINT {
+		if stopped > 2 || sig == syscall.SIGINT || sig == syscall.SIGQUIT {
 			svr.Stop()
 		} else {
 			svr.GracefulStop()
