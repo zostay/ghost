@@ -9,13 +9,18 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the name of the config type for the Keepass secret keeper.
 const ConfigType = "keepass"
 
+// Config is the configuration for the Keepass secret keeper.
 type Config struct {
-	Path   string `mapstructure:"path" yaml:"path"`
+	// Path is the path to the Keepass database.
+	Path string `mapstructure:"path" yaml:"path"`
+	// Master is the master password to use to unlock the Keepass database.
 	Master string `mapstructure:"master_password" yaml:"master_password"`
 }
 
+// Builder builds a new Keepass secret keeper.
 func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	cfg, isKeepass := c.(*Config)
 	if !isKeepass {

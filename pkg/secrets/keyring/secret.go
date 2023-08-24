@@ -11,6 +11,9 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// Secret is a secrets.Secret implementation that wraps a keyring entry. This
+// implementation is unique in that the ID, name, and username are all treated
+// the same.
 type Secret struct {
 	name  string
 	value string
@@ -28,6 +31,7 @@ const (
 	fldMtime        = "mtime"
 )
 
+// FromKeyringt creates a new Secret from the given keyring entry.
 func FromKeyring(name string, value string) (*Secret, error) {
 	dec, err := decodeValue(value)
 	if err != nil {
@@ -41,6 +45,7 @@ func FromKeyring(name string, value string) (*Secret, error) {
 	}, nil
 }
 
+// FromSecret creates a new Secret from the given secret.
 func FromSecret(secret secrets.Secret) (*Secret, error) {
 	val, err := encodeSecret(secret)
 	if err != nil {
@@ -113,26 +118,32 @@ func decodeValue(value string) (map[string]string, error) {
 	return dec, nil
 }
 
+// ID returns the name of the secret.
 func (s *Secret) ID() string {
 	return s.name
 }
 
+// Name returns the name of the secret.
 func (s *Secret) Name() string {
 	return s.name
 }
 
+// Username returns name of the secret.
 func (s *Secret) Username() string {
 	return s.name
 }
 
+// Password returns the password of the secret.
 func (s *Secret) Password() string {
 	return s.decoded[fldPassword]
 }
 
+// Type returns the type of the secret.
 func (s *Secret) Type() string {
 	return s.decoded[fldType]
 }
 
+// Fields returns the fields of the secret.
 func (s *Secret) Fields() map[string]string {
 	flds := make(map[string]string, len(s.decoded))
 	for k, v := range s.decoded {
@@ -143,20 +154,24 @@ func (s *Secret) Fields() map[string]string {
 	return flds
 }
 
+// GetField returns the value of the given field.
 func (s *Secret) GetField(name string) string {
 	return s.decoded[fldFieldsPrefix+name]
 }
 
+// LastModified returns the last modified time of the secret.
 func (s *Secret) LastModified() time.Time {
 	ue, _ := strconv.ParseInt(s.decoded[fldMtime], 10, 64)
 	return time.Unix(ue, 0)
 }
 
+// Url returns the URL of the secret.
 func (s *Secret) Url() *url.URL {
 	u, _ := url.Parse(s.decoded[fldUrl])
 	return u
 }
 
+// Location returns the location of the secret.
 func (s *Secret) Location() string {
 	return ""
 }

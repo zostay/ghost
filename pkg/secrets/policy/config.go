@@ -16,30 +16,52 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the name of the config type for the policy secret keeper.
 const ConfigType = "policy"
 
+// RuleConfig configures the action to apply with a rule.
 type RuleConfig struct {
-	Lifetime   time.Duration `mapstructure:"lifetime" yaml:"lifetime"`
-	Acceptance string        `mapstructure:"acceptance" yaml:"acceptance"`
+	// Lifetime is the maximum lifetime of a secret in the keeper.
+	Lifetime time.Duration `mapstructure:"lifetime" yaml:"lifetime"`
+	// Acceptance determines whether access to the secret is allowed or denied.
+	Acceptance string `mapstructure:"acceptance" yaml:"acceptance"`
 }
 
+// MatchConfig configures the matchers for a rule.
 type MatchConfig struct {
+	// LocationMatch is a matches a rule by location by exact match, glob, or
+	// regular expression.
 	LocationMatch string `mapstructure:"location" yaml:"location"`
-	NameMatch     string `mapstructure:"name" yaml:"name"`
+	// NameMatch is a matches a rule by name by exact match, glob, or regular
+	// expression.
+	NameMatch string `mapstructure:"name" yaml:"name"`
+	// UsernameMatch is a matches a rule by username by exact match, glob, or
+	// regular expression.
 	UsernameMatch string `mapstructure:"username" yaml:"username"`
-	TypeMatch     string `mapstructure:"secret_type" yaml:"secret_type"`
-	UrlMatch      string `mapstructure:"url" yaml:"url"`
+	// TypeMatch is a matches a rule by secret type by exact match, glob, or
+	// regular expression.
+	TypeMatch string `mapstructure:"secret_type" yaml:"secret_type"`
+	// UrlMatch is a matches a rule by URL by exact match, glob, or regular
+	// expression.
+	UrlMatch string `mapstructure:"url" yaml:"url"`
 }
 
+// MatchRuleConfig configures a rule with matchers.
 type MatchRuleConfig struct {
+	// MatchConfig configures the matchers for a rule.
 	MatchConfig `mapstructure:",squash" yaml:",inline"`
-	RuleConfig  `mapstructure:",squash" yaml:",inline"`
+	// RuleConfig configures the action to apply with a rule.
+	RuleConfig `mapstructure:",squash" yaml:",inline"`
 }
 
+// Config is the configuration for the policy secret keeper.
 type Config struct {
-	Keeper      string            `mapstructure:"keeper" yaml:"keeper"`
-	DefaultRule RuleConfig        `mapstructure:",squash" yaml:",inline"`
-	Rules       []MatchRuleConfig `mapstructure:"rules" yaml:"rules"`
+	// Keeper is the name of the keeper to wrap.
+	Keeper string `mapstructure:"keeper" yaml:"keeper"`
+	// DefaultRule configures the default rule for the keeper.
+	DefaultRule RuleConfig `mapstructure:",squash" yaml:",inline"`
+	// Rules configures the match rules for the keeper.
+	Rules []MatchRuleConfig `mapstructure:"rules" yaml:"rules"`
 }
 
 var acceptances = map[string]Acceptance{
@@ -48,6 +70,9 @@ var acceptances = map[string]Acceptance{
 	"inherit": InheritAcceptance,
 }
 
+// ValidAcceptance returns true if the acceptance string is valid. The values
+// "allow" and "deny" are always allowed. The value "inherit" is allowed when
+// inheritAllowed is true.
 func ValidAcceptance(a string, inheritAllowed bool) bool {
 	if inheritAllowed && a == "inherit" {
 		return true
@@ -55,6 +80,7 @@ func ValidAcceptance(a string, inheritAllowed bool) bool {
 	return a == "allow" || a == "deny"
 }
 
+// Validate validates the policy configuration.
 func Validate(ctx context.Context, c any) error {
 	cfg, isPolicy := c.(*Config)
 	if !isPolicy {
@@ -92,6 +118,7 @@ func validate(ctx context.Context, cfg *Config) error {
 	return errs.Return()
 }
 
+// Builder constructs a new policy secret keeper.
 func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	cfg, isPolicy := c.(*Config)
 	if !isPolicy {
@@ -117,13 +144,7 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 			rule = NewAcceptanceRule(acceptances[r.Acceptance])
 		}
 
-		match := &Match{
-			LocationMatch: r.LocationMatch,
-			NameMatch:     r.NameMatch,
-			UsernameMatch: r.UsernameMatch,
-			TypeMatch:     r.TypeMatch,
-			UrlMatch:      r.UrlMatch,
-		}
+		match := &Match{m: r.MatchConfig}
 
 		kpr.AddRule(&MatchRule{match, rule})
 	}

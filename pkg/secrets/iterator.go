@@ -5,8 +5,12 @@ import (
 	"errors"
 )
 
+// ErrSkipLocation may be returned by a ForEach iterator function to skip the
+// rest of the secrets in a location.
 var ErrSkipLocation = errors.New("skip location")
 
+// ForEachInLocation runs the given function for each secret in the named
+// location.
 func ForEachInLocation(
 	ctx context.Context,
 	kpr Keeper,
@@ -35,6 +39,7 @@ func ForEachInLocation(
 	return nil
 }
 
+// ForEach runs the given function for each secret in the keeper.
 func ForEach(
 	ctx context.Context,
 	kpr Keeper,

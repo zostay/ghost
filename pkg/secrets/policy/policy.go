@@ -9,6 +9,8 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// Policy is a secret keeper that wraps another secret keeper and applies
+// policy rules to the secrets in the nested keeper.
 type Policy struct {
 	secrets.Keeper
 	defaultRule *Rule
@@ -17,6 +19,7 @@ type Policy struct {
 
 var _ secrets.Keeper = &Policy{}
 
+// New creates a new policy secret keeper.
 func New(kpr secrets.Keeper) *Policy {
 	return &Policy{
 		Keeper: kpr,
@@ -28,6 +31,7 @@ func New(kpr secrets.Keeper) *Policy {
 	}
 }
 
+// AddRule adds a rule to the policy.
 func (p *Policy) AddRule(r *MatchRule) {
 	p.matchRule = append(p.matchRule, r)
 }
@@ -80,6 +84,7 @@ func (p *Policy) EnforceOne(ctx context.Context, sec secrets.Secret) error {
 	return nil
 }
 
+// SetDefaultAcceptance sets the default acceptance policy for the policy.
 func (p *Policy) SetDefaultAcceptance(a Acceptance) {
 	if a == InheritAcceptance {
 		panic("default acceptance may not be set to inherit")
@@ -87,12 +92,13 @@ func (p *Policy) SetDefaultAcceptance(a Acceptance) {
 	p.defaultRule.acceptance = a
 }
 
+// SetDefaultLifetime sets the default lifetime for the policy.
 func (p *Policy) SetDefaultLifetime(l time.Duration) {
 	p.defaultRule.lifetime = l
 }
 
-// TODO Is the visibility/acceptance dichotomy sensible?
-
+// ListLocations lists the locations in the nested keeper that are accessible
+// to the policy.
 func (p *Policy) ListLocations(ctx context.Context) ([]string, error) {
 	locs, err := p.Keeper.ListLocations(ctx)
 	if err != nil {
@@ -143,6 +149,8 @@ func (p *Policy) lifetimeForSecret(sec secrets.Secret) time.Duration {
 	return p.defaultRule.lifetime
 }
 
+// ListSecrets lists the secrets in the nested keeper that are accessible to
+// the policy.
 func (p *Policy) ListSecrets(ctx context.Context, location string) ([]string, error) {
 	ids, err := p.Keeper.ListSecrets(ctx, location)
 	if err != nil {
@@ -164,6 +172,8 @@ func (p *Policy) ListSecrets(ctx context.Context, location string) ([]string, er
 	return retSecs, nil
 }
 
+// GetSecretsByName retrieves all secrets with the given name that are
+// accessible by the policy.
 func (p *Policy) GetSecretsByName(ctx context.Context, name string) ([]secrets.Secret, error) {
 	secs, err := p.Keeper.GetSecretsByName(ctx, name)
 	if err != nil {
@@ -180,6 +190,8 @@ func (p *Policy) GetSecretsByName(ctx context.Context, name string) ([]secrets.S
 	return retSecs, nil
 }
 
+// GetSecret retrieves the identified secret from the nested keeper if it is
+// accessible by the policy.
 func (p *Policy) GetSecret(ctx context.Context, id string) (secrets.Secret, error) {
 	sec, err := p.Keeper.GetSecret(ctx, id)
 	if err != nil {
@@ -193,6 +205,8 @@ func (p *Policy) GetSecret(ctx context.Context, id string) (secrets.Secret, erro
 	return nil, secrets.ErrNotFound
 }
 
+// SetSecret saves the named secret to the given value in the nested keeper if
+// it is accessible by the policy.
 func (p *Policy) SetSecret(ctx context.Context, secret secrets.Secret) (secrets.Secret, error) {
 	if p.accessibleSecret(secret) {
 		return p.Keeper.SetSecret(ctx, secret)
@@ -200,6 +214,8 @@ func (p *Policy) SetSecret(ctx context.Context, secret secrets.Secret) (secrets.
 	return nil, errors.New("secret is not writable")
 }
 
+// CopySecret copies the identified secret to the given location in the nested
+// keeper if it is accessible by the policy.
 func (p *Policy) CopySecret(ctx context.Context, id string, location string) (secrets.Secret, error) {
 	sec, err := p.Keeper.GetSecret(ctx, id)
 	if err != nil {
@@ -220,6 +236,8 @@ func (p *Policy) CopySecret(ctx context.Context, id string, location string) (se
 	return p.Keeper.CopySecret(ctx, id, location)
 }
 
+// MoveSecret moves the identified secret to the given location in the nested
+// keeper if it is accessible by the policy.
 func (p *Policy) MoveSecret(ctx context.Context, id string, location string) (secrets.Secret, error) {
 	sec, err := p.Keeper.GetSecret(ctx, id)
 	if err != nil {
@@ -240,6 +258,8 @@ func (p *Policy) MoveSecret(ctx context.Context, id string, location string) (se
 	return p.Keeper.MoveSecret(ctx, id, location)
 }
 
+// DeleteSecret deletes the identified secret from the nested keeper if it is
+// accessible by the policy.
 func (p *Policy) DeleteSecret(ctx context.Context, id string) error {
 	sec, err := p.Keeper.GetSecret(ctx, id)
 	if err != nil {

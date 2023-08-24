@@ -20,11 +20,7 @@ const (
 type matchFunc func(string) bool
 
 type Match struct {
-	LocationMatch string
-	NameMatch     string
-	UsernameMatch string
-	TypeMatch     string
-	UrlMatch      string
+	m MatchConfig
 }
 
 var (
@@ -59,23 +55,23 @@ func matchString(match, against string) matchStatus {
 }
 
 func (m Match) matchLocation(loc string) matchStatus {
-	return matchString(m.LocationMatch, loc)
+	return matchString(m.m.LocationMatch, loc)
 }
 
 func (m Match) matchName(name string) matchStatus {
-	return matchString(m.NameMatch, name)
+	return matchString(m.m.NameMatch, name)
 }
 
 func (m Match) matchUsername(username string) matchStatus {
-	return matchString(m.UsernameMatch, username)
+	return matchString(m.m.UsernameMatch, username)
 }
 
 func (m Match) matchType(typ string) matchStatus {
-	return matchString(m.TypeMatch, typ)
+	return matchString(m.m.TypeMatch, typ)
 }
 
 func (m Match) matchUrl(url string) matchStatus {
-	return matchString(m.UrlMatch, url)
+	return matchString(m.m.UrlMatch, url)
 }
 
 func (m Match) matchSecret(sec secrets.Secret) matchStatus {

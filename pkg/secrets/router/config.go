@@ -18,18 +18,26 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the name of the config type for the router secret keeper.
 const ConfigType = "router"
 
+// Config is the configuration for the router secret keeper.
 type Config struct {
-	Routes       []RouteConfig `mapstructure:"routes" yaml:"routes"`
-	DefaultRoute string        `mapstructure:"default" yaml:"default,omitempty"`
+	// Routes is the list of routes to use for the router.
+	Routes []RouteConfig `mapstructure:"routes" yaml:"routes"`
+	// DefaultRoute is the name of the default route to use for the router.
+	DefaultRoute string `mapstructure:"default" yaml:"default,omitempty"`
 }
 
+// RouteConfig is the configuration for a route in the router.
 type RouteConfig struct {
+	// Locations is the list of locations to route to the keeper.
 	Locations []string `mapstructure:"locations" yaml:"locations"`
-	Keeper    string   `mapstructure:"keeper" yaml:"keeper"`
+	// Keeper is the name of the keeper to use for the route.
+	Keeper string `mapstructure:"keeper" yaml:"keeper"`
 }
 
+// Builder constructs a new router secret keeper.
 func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	cfg, isRouter := c.(*Config)
 	if !isRouter {
@@ -58,6 +66,7 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	return r, nil
 }
 
+// Validator validates the router configuration.
 func Validator(ctx context.Context, c any) error {
 	cfg, isRouter := c.(*Config)
 	if !isRouter {
@@ -142,9 +151,10 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, cmd)
 }
 
+// AddRoute adds a route to the router configuration.
 func AddRoute(rc config.KeeperConfig, keeper string, locations ...string) {
 	routes := rc["routes"].([]map[string]any)
 	if routes == nil {
@@ -180,6 +190,8 @@ func AddRoute(rc config.KeeperConfig, keeper string, locations ...string) {
 	rc["routes"] = routes
 }
 
+// RemoveLocationsAndRoutes removes the given locations from the router
+// configuration.
 func RemoveLocationsAndRoutes(rc config.KeeperConfig, removeLocations ...string) {
 	routes := rc["routes"].([]map[string]any)
 	removeSet := set.New(removeLocations...)

@@ -15,12 +15,16 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the name of the config type for the seq secret keeper.
 const ConfigType = "seq"
 
+// Config is the configuration for the seq secret keeper.
 type Config struct {
+	// Keepers is the list of keepers to use for the seq keeper.
 	Keepers []string `mapstructure:"keepers" yaml:"keepers"`
 }
 
+// Builder constructs a new seq secret keeper.
 func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	cfg, isSeq := c.(*Config)
 	if !isSeq {
@@ -38,6 +42,7 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	return NewSeq(keepers...)
 }
 
+// Validator validates the seq keeper configuration.
 func Validator(ctx context.Context, c any) error {
 	cfg, isSeq := c.(*Config)
 	if !isSeq {

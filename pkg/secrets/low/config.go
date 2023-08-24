@@ -9,12 +9,16 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the name of the config type for the low-security secret keeper.
 const ConfigType = "low"
 
+// Config is the configuration for the low-security secret keeper.
 type Config struct {
+	// Path is the path to the low-level configuration file.
 	Path string `mapstructure:"path" yaml:"path"`
 }
 
+// Builder builds a new low-security secret keeper.
 func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	cfg, isLow := c.(*Config)
 	if !isLow {

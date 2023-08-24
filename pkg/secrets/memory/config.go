@@ -9,6 +9,7 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the name of the config type for the memory secret keeper.
 const ConfigType = "memory"
 
 // Config is the configuration required for the secret store.

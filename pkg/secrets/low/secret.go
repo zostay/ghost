@@ -11,12 +11,15 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// Secret is a secrets.Secret implementation that wraps secrets.Single with a
+// settable id and with YAML marshalling and unmarshalling.
 type Secret struct {
 	secrets.Single
 
 	id string
 }
 
+// ID returns the secret ID.
 func (s *Secret) ID() string {
 	if s.id == "" {
 		return s.Single.ID()
@@ -24,10 +27,12 @@ func (s *Secret) ID() string {
 	return s.id
 }
 
+// SetID sets the secret ID.
 func (s *Secret) SetID(id string) {
 	s.id = id
 }
 
+// MarshalYAML marshals the secret to YAML.
 func (s *Secret) MarshalYAML() (interface{}, error) {
 	return map[string]any{
 		"Name":         s.Single.Name(),
@@ -41,6 +46,7 @@ func (s *Secret) MarshalYAML() (interface{}, error) {
 	}, nil
 }
 
+// UnmarshalYAML unmarshals the secret from YAML.
 func (s *Secret) UnmarshalYAML(node *yaml.Node) error {
 	if node.Kind != yaml.MappingNode {
 		return errors.New("secret must be a mapping")

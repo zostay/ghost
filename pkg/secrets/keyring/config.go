@@ -9,12 +9,16 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the name of the config type for the keyring secret keeper.
 const ConfigType = "keyring"
 
+// Config is the configuration for the keyring secret keeper.
 type Config struct {
+	// ServiceName is the name of the service to use in the keyring.
 	ServiceName string `mapstructure:"service_name" yaml:"service_name"`
 }
 
+// Builder builds a new keyring secret keeper.
 func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	cfg, isKeyring := c.(*Config)
 	if !isKeyring {

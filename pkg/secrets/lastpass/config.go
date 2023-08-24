@@ -9,13 +9,18 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ConfigType is the name of the config type for the lastpass secret keeper.
 const ConfigType = "lastpass"
 
+// Config is the configuration for the lastpass secret keeper.
 type Config struct {
+	// Username is the username to use to log into LastPass.
 	Username string `mapstructure:"username" yaml:"username"`
+	// Password is the password to use to log into LastPass.
 	Password string `mapstructure:"password" yaml:"password"`
 }
 
+// Builder builds a new lastpass secret keeper.
 func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	cfg, isLastpass := c.(*Config)
 	if !isLastpass {

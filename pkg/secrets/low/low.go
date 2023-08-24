@@ -14,6 +14,8 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+// ErrUnsupportedVersion is returned when the low security file version is not
+// supported.
 var ErrUnsupportedVersion = errors.New("unsupported low security file version")
 
 // LowSecurity is a secret keeper for storing secrets in plain text. Only

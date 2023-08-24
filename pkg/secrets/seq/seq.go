@@ -16,7 +16,7 @@ type Seq struct {
 
 var _ secrets.Keeper = &Seq{}
 
-// Returns a new sequential keeper with the given list of Keepers.
+// NewSeq returns a new sequential keeper with the given list of Keepers.
 func NewSeq(keepers ...secrets.Keeper) (*Seq, error) {
 	if len(keepers) == 0 {
 		return nil, errors.New("no keepers given")

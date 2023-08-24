@@ -22,6 +22,7 @@ const (
 
 var stdKeys = set.New(keyTitle, keyUsername, keySecret, keyType, keyURL)
 
+// Secret is a secrets.Secret implementation that wraps a keepass.Entry.
 type Secret struct {
 	db  *keepass.Database
 	e   *keepass.Entry
@@ -133,7 +134,7 @@ func makeUUID(id string) (keepass.UUID, error) {
 	return uuid, err
 }
 
-func (s *Secret) Len() int {
+func (s *Secret) len() int {
 	return len(s.e.Values) + len(s.newFields)
 }
 
@@ -142,10 +143,12 @@ func (s *Secret) set(key, value string) {
 	s.delFields.Delete(key)
 }
 
+// ID returns the UUID of the Keepass entry.
 func (s *Secret) ID() string {
 	return makeID(s.e.UUID)
 }
 
+// Name returns the Title of the Keepass entry.
 func (s *Secret) Name() string {
 	if title, hasNewTitle := s.newFields[keyTitle]; hasNewTitle {
 		return title
@@ -153,10 +156,12 @@ func (s *Secret) Name() string {
 	return s.e.GetTitle()
 }
 
+// SetName sets the Title of the Keepass entry.
 func (s *Secret) SetName(name string) {
 	s.set(keyTitle, name)
 }
 
+// Username returns the Username of the Keepass entry.
 func (s *Secret) Username() string {
 	if username, hasNewUsername := s.newFields[keyUsername]; hasNewUsername {
 		return username
@@ -164,6 +169,7 @@ func (s *Secret) Username() string {
 	return s.e.GetContent(keyUsername)
 }
 
+// SetUsername sets the Username of the Keepass entry.
 func (s *Secret) SetUsername(username string) {
 	s.set(keyUsername, username)
 }
@@ -182,6 +188,7 @@ func (s *Secret) whileUnlocked(run func()) {
 	run()
 }
 
+// Password returns the Password of the Keepass entry.
 func (s *Secret) Password() string {
 	if secret, hasNewSecret := s.newFields[keySecret]; hasNewSecret {
 		return secret
@@ -194,10 +201,12 @@ func (s *Secret) Password() string {
 	return secret
 }
 
+// SetPassword sets the Password of the Keepass entry.
 func (s *Secret) SetPassword(secret string) {
 	s.set(keySecret, secret)
 }
 
+// Type returns the Type of the Keepass entry.
 func (s *Secret) Type() string {
 	if typ, hasNewType := s.newFields[keyType]; hasNewType {
 		return typ
@@ -205,10 +214,12 @@ func (s *Secret) Type() string {
 	return s.e.GetContent(keyType)
 }
 
+// SetType sets the Type of the Keepass entry.
 func (s *Secret) SetType(typ string) {
 	s.set(keyType, typ)
 }
 
+// Fields returns the fields of the Keepass entry.
 func (s *Secret) Fields() map[string]string {
 	flds := make(map[string]string, len(s.e.Values))
 	for _, val := range s.e.Values {
@@ -224,6 +235,7 @@ func (s *Secret) Fields() map[string]string {
 	return flds
 }
 
+// GetField	returns the value of the field with the given key.
 func (s *Secret) GetField(key string) string {
 	if stdKeys.Contains(key) {
 		return ""
@@ -235,6 +247,7 @@ func (s *Secret) GetField(key string) string {
 	return s.e.GetContent(key)
 }
 
+// SetField sets the value of the field with the given key.
 func (s *Secret) SetField(key, value string) {
 	if key == keySecret {
 		s.SetPassword(value)
@@ -242,14 +255,17 @@ func (s *Secret) SetField(key, value string) {
 	s.set(key, value)
 }
 
+// DeleteField removes the field with the given key.
 func (s *Secret) DeleteField(key string) {
 	s.delFields.Insert(key)
 }
 
+// LastModified returns the last modification time of the Keepass entry.
 func (s *Secret) LastModified() time.Time {
 	return s.e.Times.LastModificationTime.Time
 }
 
+// Url returns the URL of the Keepass entry.
 func (s *Secret) Url() *url.URL {
 	if s.newUrl != nil {
 		return s.newUrl
@@ -259,10 +275,12 @@ func (s *Secret) Url() *url.URL {
 	return u
 }
 
+// SetUrl sets the URL of the Keepass entry.
 func (s *Secret) SetUrl(u *url.URL) {
 	s.newUrl = u
 }
 
+// Location returns the full path of the location.
 func (s *Secret) Location() string {
 	if s.newLocation != nil {
 		return *s.newLocation
@@ -270,6 +288,7 @@ func (s *Secret) Location() string {
 	return s.dir
 }
 
+// SetLocation sets the location of the full path of the secret.
 func (s *Secret) SetLocation(loc string) {
 	s.newLocation = &loc
 }

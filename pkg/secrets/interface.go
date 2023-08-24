@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Secret is the interface for a secret.
 type Secret interface {
 	// ID returns the unique ID of the secret.
 	ID() string
@@ -37,36 +38,46 @@ type Secret interface {
 	Location() string
 }
 
+// SettableName is the interface for a secret that can have its name set.
 type SettableName interface {
 	// SetName sets the name of the secret.
 	SetName(string)
 }
 
+// SettableUsername is the interface for a secret that can have its username
+// set.
 type SettableUsername interface {
 	// SetUsername sets the username for the secret.
 	SetUsername(string)
 }
 
+// SettablePassword is the interface for a secret that can have its password
+// value set.
 type SettablePassword interface {
-	// SetSecret sets the secret value.
+	// SetPassword sets the secret value.
 	SetPassword(string)
 }
 
+// SettableType is the interface for a secret that can have its type set.
 type SettableType interface {
 	// SetType sets the type of the secret.
 	SetType(string)
 }
 
+// SettableFields is the interface for a secret that can have its fields set.
 type SettableFields interface {
 	SetField(string, string)
 	DeleteField(string)
 }
 
+// SettableLastModified is the interface for a secret that can have its last
+// modified time set.
 type SettableLastModified interface {
 	// SetLastModified sets the last modified time for the secret.
 	SetLastModified(time.Time)
 }
 
+// SettableUrl is the interface for a secret that can have its URL set.
 type SettableUrl interface {
 	// SetUrl sets the URL for the secret.
 	SetUrl(*url.URL)
