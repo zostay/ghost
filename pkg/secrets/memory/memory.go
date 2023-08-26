@@ -15,17 +15,17 @@ import (
 
 // encryption in here is probably just me being paranoid
 
-// Internal is a Keeper that stores secrets in memory.
-type Internal struct {
+// Memory is a Keeper that stores secrets in memory.
+type Memory struct {
 	cipher  cipher.AEAD
 	nonce   []byte
 	secrets map[string][]byte
 }
 
-var _ secrets.Keeper = &Internal{}
+var _ secrets.Keeper = &Memory{}
 
 // MustNew calls New and panics if it returns an error.
-func MustNew() *Internal {
+func MustNew() *Memory {
 	i, err := New()
 	if err != nil {
 		panic(err)
@@ -34,7 +34,7 @@ func MustNew() *Internal {
 }
 
 // New constructs a new secret memory store.
-func New() (*Internal, error) {
+func New() (*Memory, error) {
 	k := make([]byte, 32)
 	_, err := rand.Read(k)
 	if err != nil {
@@ -57,7 +57,7 @@ func New() (*Internal, error) {
 		return nil, err
 	}
 
-	i := &Internal{
+	i := &Memory{
 		cipher:  gc,
 		nonce:   nonce,
 		secrets: make(map[string][]byte),
@@ -66,7 +66,7 @@ func New() (*Internal, error) {
 	return i, nil
 }
 
-func (i *Internal) decodeSecret(s []byte) (secrets.Secret, error) {
+func (i *Memory) decodeSecret(s []byte) (secrets.Secret, error) {
 	ds, err := i.cipher.Open(nil, i.nonce, s, nil)
 	if err != nil {
 		return nil, err
@@ -83,7 +83,7 @@ func (i *Internal) decodeSecret(s []byte) (secrets.Secret, error) {
 	return &sec, nil
 }
 
-func (i *Internal) encodeSecret(sec secrets.Secret) ([]byte, error) {
+func (i *Memory) encodeSecret(sec secrets.Secret) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 	err := enc.Encode(sec)
@@ -98,7 +98,7 @@ func (i *Internal) encodeSecret(sec secrets.Secret) ([]byte, error) {
 }
 
 // ListLocations returns a list of all the secret names in the store.
-func (i *Internal) ListLocations(context.Context) ([]string, error) {
+func (i *Memory) ListLocations(context.Context) ([]string, error) {
 	locs := make([]string, 0, len(i.secrets)>>1)
 	for _, ct := range i.secrets {
 		sec, err := i.decodeSecret(ct)
@@ -112,7 +112,7 @@ func (i *Internal) ListLocations(context.Context) ([]string, error) {
 }
 
 // ListSecrets returns a list of all the secret IDs at the given location.
-func (i *Internal) ListSecrets(_ context.Context, loc string) ([]string, error) {
+func (i *Memory) ListSecrets(_ context.Context, loc string) ([]string, error) {
 	ids := make([]string, 0, len(i.secrets)>>1)
 	for _, ct := range i.secrets {
 		sec, err := i.decodeSecret(ct)
@@ -128,7 +128,7 @@ func (i *Internal) ListSecrets(_ context.Context, loc string) ([]string, error) 
 }
 
 // GetSecret retrieves the identified secret from the internal memory store.
-func (i *Internal) GetSecret(_ context.Context, id string) (secrets.Secret, error) {
+func (i *Memory) GetSecret(_ context.Context, id string) (secrets.Secret, error) {
 	if s, ok := i.secrets[id]; ok {
 		return i.decodeSecret(s)
 	}
@@ -136,7 +136,7 @@ func (i *Internal) GetSecret(_ context.Context, id string) (secrets.Secret, erro
 }
 
 // GetSecretsByName retrieves all secrets with the given name.
-func (i *Internal) GetSecretsByName(_ context.Context, name string) ([]secrets.Secret, error) {
+func (i *Memory) GetSecretsByName(_ context.Context, name string) ([]secrets.Secret, error) {
 	secs := make([]secrets.Secret, 0, 1)
 	for _, ct := range i.secrets {
 		sec, err := i.decodeSecret(ct)
@@ -153,7 +153,7 @@ func (i *Internal) GetSecretsByName(_ context.Context, name string) ([]secrets.S
 
 // SetSecret saves the named secret to the given value in the internal memory
 // store.
-func (i *Internal) SetSecret(_ context.Context, secret secrets.Secret) (secrets.Secret, error) {
+func (i *Memory) SetSecret(_ context.Context, secret secrets.Secret) (secrets.Secret, error) {
 	opts := make([]secrets.SingleOption, 0, 1)
 	if _, hasSecret := i.secrets[secret.ID()]; secret.ID() == "" || !hasSecret {
 		opts = append(opts, secrets.WithID(ulid.Make().String()))
@@ -171,7 +171,7 @@ func (i *Internal) SetSecret(_ context.Context, secret secrets.Secret) (secrets.
 
 // CopySecret copies the secret into a new location while leaving the original
 // in the old location.
-func (i *Internal) CopySecret(ctx context.Context, id string, location string) (secrets.Secret, error) {
+func (i *Memory) CopySecret(ctx context.Context, id string, location string) (secrets.Secret, error) {
 	secret, err := i.GetSecret(ctx, id)
 	if err != nil {
 		return nil, err
@@ -191,7 +191,7 @@ func (i *Internal) CopySecret(ctx context.Context, id string, location string) (
 }
 
 // MoveSecret moves the secret into another location of the memory store.
-func (i *Internal) MoveSecret(ctx context.Context, id string, location string) (secrets.Secret, error) {
+func (i *Memory) MoveSecret(ctx context.Context, id string, location string) (secrets.Secret, error) {
 	secret, err := i.GetSecret(ctx, id)
 	if err != nil {
 		return nil, err
@@ -210,7 +210,7 @@ func (i *Internal) MoveSecret(ctx context.Context, id string, location string) (
 }
 
 // DeleteSecret removes the identified secret from the store.
-func (i *Internal) DeleteSecret(_ context.Context, id string) error {
+func (i *Memory) DeleteSecret(_ context.Context, id string) error {
 	delete(i.secrets, id)
 	return nil
 }

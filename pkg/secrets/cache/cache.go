@@ -12,8 +12,8 @@ import (
 // Cache is a secret keeper that wraps another secret keeper and caches
 // secrets in memory. Writing to it directly is not permitted.
 type Cache struct {
-	secrets.Keeper   // the secret keeper to cache
-	*memory.Internal // the memory keeper used to store cached secrets
+	secrets.Keeper // the secret keeper to cache
+	*memory.Memory // the memory keeper used to store cached secrets
 
 	touchOnRead bool // update last modified on GetSecret* calls
 }
@@ -29,8 +29,8 @@ func New(k secrets.Keeper, touchOnRead bool) (*Cache, error) {
 	}
 
 	return &Cache{
-		Internal: mem,
-		Keeper:   k,
+		Memory: mem,
+		Keeper: k,
 
 		touchOnRead: touchOnRead,
 	}, nil
@@ -51,7 +51,7 @@ func (c *Cache) ListSecrets(ctx context.Context, loc string) ([]string, error) {
 func (c *Cache) touchSecret(ctx context.Context, sec secrets.Secret) (secrets.Secret, error) {
 	updSec := secrets.NewSingleFromSecret(sec,
 		secrets.WithLastModified(time.Now()))
-	cacheSec, err := c.Internal.SetSecret(ctx, updSec)
+	cacheSec, err := c.Memory.SetSecret(ctx, updSec)
 	if err != nil {
 		return sec, nil
 	}
@@ -63,7 +63,7 @@ func (c *Cache) touchSecret(ctx context.Context, sec secrets.Secret) (secrets.Se
 // touchOnRead flag is set, the last modified date of the secret will be updated
 // on each call.
 func (c *Cache) GetSecret(ctx context.Context, id string) (secrets.Secret, error) {
-	sec, _ := c.Internal.GetSecret(ctx, id)
+	sec, _ := c.Memory.GetSecret(ctx, id)
 	if sec != nil {
 		if c.touchOnRead {
 			return c.touchSecret(ctx, sec)
@@ -101,7 +101,7 @@ func (c *Cache) touchSecrets(ctx context.Context, secs []secrets.Secret) ([]secr
 // cached list of secrets. If the touchOnRead flag is set, the last modified
 // date of the secrets will be updated on each call.
 func (c *Cache) GetSecretsByName(ctx context.Context, name string) ([]secrets.Secret, error) {
-	secs, _ := c.Internal.GetSecretsByName(ctx, name)
+	secs, _ := c.Memory.GetSecretsByName(ctx, name)
 	if len(secs) > 0 {
 		if c.touchOnRead {
 			return c.touchSecrets(ctx, secs)
@@ -134,5 +134,5 @@ func (c *Cache) MoveSecret(context.Context, string, string) (secrets.Secret, err
 // DeleteSecret deletes the secret with the given ID from the cache only. This
 // does not delete the secret from the wrapped secret keeper.
 func (c *Cache) DeleteSecret(ctx context.Context, id string) error {
-	return c.Internal.DeleteSecret(ctx, id)
+	return c.Memory.DeleteSecret(ctx, id)
 }

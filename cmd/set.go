@@ -64,7 +64,7 @@ func RunSet(cmd *cobra.Command, args []string) {
 	}
 
 	if (moveSecret || copySecret) && location == "" {
-		s.Logger.Panic("You must specify a --location to place the secret while %s.", opVerb)
+		s.Logger.Panicf("You must specify a --location to place the secret while %s.", opVerb)
 	}
 
 	if password != "" && prompt {

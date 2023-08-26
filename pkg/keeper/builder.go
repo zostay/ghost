@@ -206,7 +206,7 @@ func (mb *builderContext) configAndBuilder(name string) (kc config.KeeperConfig,
 	var hasPlugin bool
 	r, hasPlugin = plugin.Get(typ)
 	if !hasPlugin {
-		err = fmt.Errorf("keeper configuration for %q has incorrect or unregistered type", name, typ)
+		err = fmt.Errorf("keeper configuration for %q has incorrect or unregistered type %q", name, typ)
 		return
 	}
 
