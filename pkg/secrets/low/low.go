@@ -87,6 +87,7 @@ func (s *LowSecurity) saveSecrets(cfg *lowSecurityConfig) error {
 	if err != nil {
 		return err
 	}
+	defer func() { _ = w.Close() }()
 
 	yamlSecrets, err := yaml.Marshal(cfg)
 	if err != nil {
@@ -173,7 +174,7 @@ func (s *LowSecurity) GetSecretsByName(
 	iter := cfg.iterator()
 	for iter.Next() {
 		secret := iter.Val()
-		single := secrets.NewSingleFromSecret(&secret)
+		single := secrets.NewSingleFromSecret(secret)
 		sec := &Secret{Single: *single}
 		if secret.Name() == name {
 			secs = append(secs, sec)
@@ -197,7 +198,7 @@ func (s *LowSecurity) SetSecret(
 	sec := Secret{Single: *single}
 
 	sec.SetID(makeID())
-	cfg.set(sec)
+	cfg.set(&sec)
 
 	err = s.saveSecrets(cfg)
 	if err != nil {
@@ -247,7 +248,7 @@ func (s *LowSecurity) CopySecret(
 
 	sec.SetID(makeID())
 	sec.SetLocation(location)
-	cfg.set(*sec)
+	cfg.set(sec)
 
 	err = s.saveSecrets(cfg)
 	if err != nil {
@@ -274,7 +275,7 @@ func (s *LowSecurity) MoveSecret(
 	}
 
 	sec.SetLocation(location)
-	cfg.set(*sec)
+	cfg.set(sec)
 
 	err = s.saveSecrets(cfg)
 	if err != nil {

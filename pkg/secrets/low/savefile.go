@@ -4,7 +4,7 @@ import "github.com/zostay/go-std/maps"
 
 type lowSecurityConfig struct {
 	Version string
-	Secrets map[string]Secret
+	Secrets map[string]*Secret
 }
 
 func newLowSecurityConfig() *lowSecurityConfig {
@@ -20,12 +20,12 @@ func (c *lowSecurityConfig) get(id string) (*Secret, bool) {
 
 	sec := c.Secrets[id]
 	sec.SetID(id)
-	return &sec, true
+	return sec, true
 }
 
-func (c *lowSecurityConfig) set(secret Secret) {
+func (c *lowSecurityConfig) set(secret *Secret) {
 	if c.Secrets == nil {
-		c.Secrets = make(map[string]Secret, 1)
+		c.Secrets = make(map[string]*Secret, 1)
 	}
 
 	c.Secrets[secret.ID()] = secret
@@ -39,6 +39,6 @@ func (c *lowSecurityConfig) delete(id string) {
 	delete(c.Secrets, id)
 }
 
-func (c *lowSecurityConfig) iterator() *maps.Iterator[string, Secret] {
+func (c *lowSecurityConfig) iterator() *maps.Iterator[string, *Secret] {
 	return maps.NewIterator(c.Secrets)
 }

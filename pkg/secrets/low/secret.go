@@ -19,6 +19,9 @@ type Secret struct {
 	id string
 }
 
+var _ yaml.Marshaler = &Secret{}
+var _ yaml.Unmarshaler = &Secret{}
+
 // ID returns the secret ID.
 func (s *Secret) ID() string {
 	if s.id == "" {
@@ -34,15 +37,20 @@ func (s *Secret) SetID(id string) {
 
 // MarshalYAML marshals the secret to YAML.
 func (s *Secret) MarshalYAML() (interface{}, error) {
+	lm := s.Single.LastModified()
+	if lm.IsZero() {
+		lm = time.Now()
+	}
+
 	return map[string]any{
 		"Name":         s.Single.Name(),
 		"Username":     s.Single.Username(),
 		"Password":     s.Single.Password(),
 		"Type":         s.Single.Type(),
 		"Location":     s.Single.Location(),
-		"URL":          s.Single.Url().String(),
+		"URL":          secrets.UrlString(s),
 		"Fields":       s.Single.Fields(),
-		"LastModified": s.Single.LastModified().Unix(),
+		"LastModified": lm.Unix(),
 	}, nil
 }
 
