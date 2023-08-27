@@ -10,7 +10,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tobischo/gokeepasslib/v3 v3.5.1
 	github.com/zalando/go-keyring v0.2.3
-	github.com/zostay/fssafe v0.1.0
+	github.com/zostay/fssafe v0.1.1
 	github.com/zostay/go-std v0.6.0
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.30.0

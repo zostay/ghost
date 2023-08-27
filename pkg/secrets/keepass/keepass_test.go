@@ -34,11 +34,17 @@ func TestKeepass(t *testing.T) {
 	ts.Run(t)
 
 	for _, ls := range lss {
-		for i, r := range ls.Readers {
-			assert.Truef(t, r.Closed, "reader %d was closed", i)
+		rcs := ls.ReadersClosed()
+		assert.Len(t, rcs, 1, "only one reader")
+
+		wcs := ls.WritersClosed()
+		assert.Len(t, wcs, 1, "only one writer")
+
+		for i, r := range rcs {
+			assert.Truef(t, r, "reader %d was closed", i)
 		}
-		for i, w := range ls.Writers {
-			assert.True(t, w.Closed, "writer %d was closed", i)
+		for i, w := range wcs {
+			assert.True(t, w, "writer %d was closed", i)
 		}
 	}
 }
