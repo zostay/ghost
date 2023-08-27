@@ -2,6 +2,8 @@ package lastpass_test
 
 import (
 	"context"
+	"math/rand"
+	"strconv"
 	"testing"
 
 	lpass "github.com/ansd/lastpass-go"
@@ -36,6 +38,7 @@ func (lp *testLastPass) Update(_ context.Context, want *lpass.Account) error {
 }
 
 func (lp *testLastPass) Add(_ context.Context, want *lpass.Account) error {
+	want.ID = strconv.Itoa(rand.Int()) //nolint:gosec // this is a test
 	lp.accounts = append(lp.accounts, want)
 	return nil
 }

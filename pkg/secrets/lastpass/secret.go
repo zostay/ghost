@@ -32,7 +32,7 @@ func fromSecret(secret secrets.Secret) *Secret {
 			Name:     secret.Name(),
 			Username: secret.Username(),
 			Password: secret.Password(),
-			URL:      secret.Url().String(),
+			URL:      secrets.UrlString(secret),
 			Group:    secret.Location(),
 			Notes:    writeNotes(secret.Type(), secret.Fields()),
 		},

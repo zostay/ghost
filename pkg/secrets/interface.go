@@ -82,3 +82,13 @@ type SettableUrl interface {
 	// SetUrl sets the URL for the secret.
 	SetUrl(*url.URL)
 }
+
+// UrlString is a helper that returns the string for a URL. If the URL is set,
+// it returns the value returned by calling the String method on it. If not, it
+// returns an empty string.
+func UrlString(sec Secret) string {
+	if sec.Url() == nil {
+		return ""
+	}
+	return sec.Url().String()
+}
