@@ -3,6 +3,7 @@ package keepass
 import (
 	"context"
 	"errors"
+	"strings"
 
 	keepass "github.com/tobischo/gokeepasslib/v3"
 	"github.com/zostay/go-std/slices"
@@ -194,16 +195,41 @@ func (k *Keepass) getGroup(groupName string) *keepass.Group {
 	return nil
 }
 
-// ensureGroupExists creates a group named ZostayRobotGroup if that group
-// does not yet exist.
-func (k *Keepass) ensureGroupExists(groupName string) *keepass.Group {
-	g := k.getGroup(groupName)
-	if g != nil {
-		return g
+func getGroup(grp *keepass.Group, groupName string) *keepass.Group {
+	for i, g := range grp.Groups {
+		if g.Name == groupName {
+			return &grp.Groups[i]
+		}
 	}
 
-	lastGroup := len(k.db.Content.Root.Groups[0].Groups)
-	return &k.db.Content.Root.Groups[0].Groups[lastGroup]
+	return nil
+}
+
+func createGroup(grp *keepass.Group, groupName string) *keepass.Group {
+	newGrp := keepass.Group{Name: groupName}
+	grp.Groups = append(grp.Groups, newGrp)
+	return &grp.Groups[len(grp.Groups)-1]
+}
+
+// ensureGroupExists creates a group with the given groupName if it does not yet
+// exist.
+func (k *Keepass) ensureGroupExists(groupPath string) *keepass.Group {
+	groupNames := strings.Split(groupPath, "/")
+	grp := &k.db.Content.Root.Groups[0]
+	for _, groupName := range groupNames {
+		if groupName == "" {
+			continue
+		}
+
+		parent := grp
+
+		grp = getGroup(grp, groupName)
+		if grp == nil {
+			grp = createGroup(parent, groupName)
+		}
+	}
+
+	return grp
 }
 
 // SetSecret upserts the secret into the Keepass database file.

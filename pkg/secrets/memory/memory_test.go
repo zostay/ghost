@@ -8,7 +8,7 @@ import (
 	"github.com/zostay/ghost/pkg/secrets/memory"
 )
 
-func TestInternal(t *testing.T) {
+func TestMemory(t *testing.T) {
 	t.Parallel()
 
 	factory := func() (secrets.Keeper, error) {

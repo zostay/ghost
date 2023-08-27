@@ -23,24 +23,26 @@ func New(f KeeperFactory) *Suite {
 }
 
 func (s *Suite) Run(t *testing.T) {
-	go s.SecretKeeperGetMissingTest(t)
-	go s.SecretKeeperSetAndGet(t)
+	t.Run("SecretKeeperGetMissingTest", s.SecretKeeperGetMissingTest)
+	t.Run("SecretKeeperSetAndGet", s.SecretKeeperSetAndGet)
 }
 
 func (s *Suite) SecretKeeperGetMissingTest(t *testing.T) {
+	t.Parallel()
+
 	k, err := s.factory()
 	require.NoError(t, err, "factory returns keeper")
 
 	ctx := context.Background()
 
-	sec, err := k.GetSecret(ctx, "missing")
-	require.Error(t, err, "missing secret returns error")
-
-	assert.Equal(t, secrets.ErrNotFound, err, "missing secret returns ErrNotFound")
-	assert.Nil(t, sec, "missing secret is nil")
+	secs, err := k.GetSecretsByName(ctx, "missing")
+	assert.NoError(t, err, "missing secret returns no error")
+	assert.Empty(t, secs, "missing secret is nil")
 }
 
 func (s *Suite) SecretKeeperSetAndGet(t *testing.T) {
+	t.Parallel()
+
 	k, err := s.factory()
 	require.NoError(t, err, "factory returns keeper")
 
@@ -58,8 +60,8 @@ func (s *Suite) SecretKeeperSetAndGet(t *testing.T) {
 	require.NotNil(t, got, "got something")
 
 	assert.Equal(t, sec.ID(), got.ID())
-	assert.Equal(t, "set1", got.Name, "got secret name set1")
-	assert.Equal(t, "secret1", got.Password, "got secret value secret1")
+	assert.Equal(t, "set1", got.Name(), "got secret name set1")
+	assert.Equal(t, "secret1", got.Password(), "got secret value secret1")
 
 	// update
 	sec = secrets.SetPassword(sec, "secret2")
@@ -74,6 +76,6 @@ func (s *Suite) SecretKeeperSetAndGet(t *testing.T) {
 	require.NotNil(t, got, "got something again")
 	assert.Equal(t, sec.ID(), got.ID())
 
-	assert.Equal(t, "set1", got.Name, "got secret name still set1")
-	assert.Equal(t, "secret2", got.Password, "but got secret value changed to secret2")
+	assert.Equal(t, "set1", got.Name(), "got secret name still set1")
+	assert.Equal(t, "secret2", got.Password(), "but got secret value changed to secret2")
 }

@@ -63,9 +63,8 @@ func fromSecret(
 			delFields: set.New[string](),
 		}
 
-		if !keepID {
-			var zero keepass.UUID
-			copy(retSec.e.UUID[:], zero[:])
+		if keepID {
+			retSec.e.UUID = eSec.e.UUID
 		}
 
 		retSec.applyChanges(secret)
@@ -75,6 +74,8 @@ func fromSecret(
 	var uuid keepass.UUID
 	if keepID {
 		uuid, _ = makeUUID(secret.ID())
+	} else {
+		uuid = keepass.NewUUID()
 	}
 
 	eSec := &Secret{
@@ -120,7 +121,9 @@ func (s *Secret) applyChanges(secret secrets.Secret) {
 	s.setEntryValue(keyUsername, secret.Username(), false)
 	s.setEntryValue(keySecret, secret.Password(), true)
 	s.setEntryValue(keyType, secret.Type(), false)
-	s.setEntryValue(keyURL, secret.Url().String(), false)
+	if secret.Url() != nil {
+		s.setEntryValue(keyURL, secret.Url().String(), false)
+	}
 }
 
 func makeID(id keepass.UUID) string {
@@ -139,6 +142,9 @@ func (s *Secret) len() int {
 }
 
 func (s *Secret) set(key, value string) {
+	if s.newFields == nil {
+		s.newFields = map[string]string{}
+	}
 	s.newFields[key] = value
 	s.delFields.Delete(key)
 }

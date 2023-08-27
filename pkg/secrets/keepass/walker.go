@@ -7,13 +7,17 @@ import (
 	"github.com/zostay/go-std/slices"
 )
 
+type groupDir struct {
+	group *keepass.Group
+	dir   string
+}
+
 // KeepassWalker represents a tool for walking Keepass records.
 type KeepassWalker struct {
-	groups  []*keepass.Group
+	groups  []groupDir
 	entries []*keepass.Entry
 
-	dirs []string
-
+	currentDir   string
 	currentGroup *keepass.Group
 	currentEntry *keepass.Entry
 
@@ -23,13 +27,15 @@ type KeepassWalker struct {
 // Walker creates an iterator for walking through the Keepass database records.
 func (k *Keepass) Walker(walkEntries bool) *KeepassWalker {
 	w := &KeepassWalker{
-		groups:      make([]*keepass.Group, 0, len(k.db.Content.Root.Groups)),
+		groups: []groupDir{
+			{
+				group: &k.db.Content.Root.Groups[0],
+				dir:   "",
+			},
+		},
 		entries:     []*keepass.Entry{},
-		dirs:        []string{},
 		walkEntries: walkEntries,
 	}
-
-	w.pushGroups(k.db.Content.Root.Groups)
 
 	return w
 }
@@ -38,7 +44,8 @@ func (k *Keepass) Walker(walkEntries bool) *KeepassWalker {
 // order.
 func (w *KeepassWalker) pushGroups(groups []keepass.Group) {
 	for i := len(groups) - 1; i >= 0; i-- {
-		w.groups = slices.Push(w.groups, &groups[i])
+		thisDir := path.Join(w.currentDir, groups[i].Name)
+		w.groups = slices.Push(w.groups, groupDir{&groups[i], thisDir})
 	}
 }
 
@@ -69,7 +76,10 @@ func (w *KeepassWalker) nextEntry() bool {
 			return false
 		}
 
-		w.currentGroup, w.groups = slices.Pop(w.groups)
+		var currentGroupDir groupDir
+		currentGroupDir, w.groups = slices.Pop(w.groups)
+		w.currentGroup = currentGroupDir.group
+		w.currentDir = currentGroupDir.dir
 
 		if len(w.currentGroup.Entries) > 0 {
 			w.pushGroups(w.currentGroup.Groups)
@@ -89,7 +99,11 @@ func (w *KeepassWalker) nextGroup() bool {
 		return false
 	}
 
-	w.currentGroup, w.groups = slices.Pop(w.groups)
+	var currentGroupDir groupDir
+	currentGroupDir, w.groups = slices.Pop(w.groups)
+	w.currentGroup = currentGroupDir.group
+	w.currentDir = currentGroupDir.dir
+
 	w.pushGroups(w.currentGroup.Groups)
 	return true
 }
@@ -106,6 +120,5 @@ func (w *KeepassWalker) Group() *keepass.Group {
 
 // Dir retrieves the name of the location of the current group as a path.
 func (w *KeepassWalker) Dir() string {
-	currentDir := w.dirs[len(w.dirs)-1]
-	return path.Join(currentDir, w.currentGroup.Name)
+	return w.currentDir
 }
