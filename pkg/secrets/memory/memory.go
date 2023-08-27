@@ -74,19 +74,19 @@ func (i *Memory) decodeSecret(s []byte) (secrets.Secret, error) {
 
 	dec := gob.NewDecoder(bytes.NewReader(ds))
 
-	var sec secrets.Single
-	err = dec.Decode(&sec)
+	in := map[string]string{}
+	err = dec.Decode(&in)
 	if err != nil {
 		return nil, err
 	}
 
-	return &sec, nil
+	return MapSecret(in), nil
 }
 
 func (i *Memory) encodeSecret(sec secrets.Secret) ([]byte, error) {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(sec)
+	err := enc.Encode(SecretMap(sec))
 	if err != nil {
 		return nil, err
 	}
