@@ -16,7 +16,7 @@ type Secret interface {
 	// Username returns the username for the secret.
 	Username() string
 
-	// Secret returns the secret value.
+	// Password returns the secret value.
 	Password() string
 
 	// Type returns the type of the secret.
