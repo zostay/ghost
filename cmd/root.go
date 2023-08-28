@@ -23,6 +23,7 @@ func init() {
 		enforcePolicyCmd,
 		getCmd,
 		listCmd,
+		randomCmd,
 		serviceCmd,
 		setCmd,
 		syncCmd,
