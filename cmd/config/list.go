@@ -28,7 +28,7 @@ func RunListConfig(cmd *cobra.Command, args []string) {
 
 	for _, keeperName := range keys {
 		kpr := c.Keepers[keeperName]
-		s.Logger.Print(keeperName)
+		s.Printer.Print(keeperName)
 		PrintKeeper(ctx, keeperName, kpr, 1)
 	}
 }

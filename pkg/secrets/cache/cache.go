@@ -15,6 +15,9 @@ type Cache struct {
 	secrets.Keeper // the secret keeper to cache
 	*memory.Memory // the memory keeper used to store cached secrets
 
+	origToCacheId map[string]string
+	cacheToOrigId map[string]string
+
 	touchOnRead bool // update last modified on GetSecret* calls
 }
 
@@ -32,6 +35,9 @@ func New(k secrets.Keeper, touchOnRead bool) (*Cache, error) {
 		Memory: mem,
 		Keeper: k,
 
+		origToCacheId: map[string]string{},
+		cacheToOrigId: map[string]string{},
+
 		touchOnRead: touchOnRead,
 	}, nil
 }
@@ -48,14 +54,25 @@ func (c *Cache) ListSecrets(ctx context.Context, loc string) ([]string, error) {
 	return c.Keeper.ListSecrets(ctx, loc)
 }
 
-func (c *Cache) touchSecret(ctx context.Context, sec secrets.Secret) (secrets.Secret, error) {
+func (c *Cache) touchSecret(
+	ctx context.Context,
+	sec secrets.Secret,
+	cacheId,
+	id string,
+) (secrets.Secret, error) {
 	updSec := secrets.NewSingleFromSecret(sec,
+		secrets.WithID(cacheId),
 		secrets.WithLastModified(time.Now()))
 	cacheSec, err := c.Memory.SetSecret(ctx, updSec)
 	if err != nil {
 		return sec, nil
 	}
-	return cacheSec, nil
+	if cacheId == "" {
+		cacheId = cacheSec.ID()
+	}
+	c.origToCacheId[id] = cacheId
+	c.cacheToOrigId[cacheId] = id
+	return secrets.NewSingleFromSecret(cacheSec, secrets.WithID(id)), nil
 }
 
 // GetSecret returns the secret with the given ID from the wrapped secret keeper
@@ -63,13 +80,15 @@ func (c *Cache) touchSecret(ctx context.Context, sec secrets.Secret) (secrets.Se
 // touchOnRead flag is set, the last modified date of the secret will be updated
 // on each call.
 func (c *Cache) GetSecret(ctx context.Context, id string) (secrets.Secret, error) {
-	sec, _ := c.Memory.GetSecret(ctx, id)
-	if sec != nil {
-		if c.touchOnRead {
-			return c.touchSecret(ctx, sec)
-		}
+	if cacheId, isCached := c.origToCacheId[id]; isCached {
+		sec, _ := c.Memory.GetSecret(ctx, cacheId)
+		if sec != nil {
+			if c.touchOnRead {
+				return c.touchSecret(ctx, sec, cacheId, id)
+			}
 
-		return sec, nil
+			return secrets.NewSingleFromSecret(sec, secrets.WithID(id)), nil
+		}
 	}
 
 	sec, err := c.Keeper.GetSecret(ctx, id)
@@ -77,23 +96,45 @@ func (c *Cache) GetSecret(ctx context.Context, id string) (secrets.Secret, error
 		return nil, err
 	}
 
-	return c.touchSecret(ctx, sec)
+	return c.touchSecret(ctx, sec, "", id)
 }
 
-func (c *Cache) touchSecrets(ctx context.Context, secs []secrets.Secret) ([]secrets.Secret, error) {
+func (c *Cache) touchSecretsFromCache(ctx context.Context, cachedSecs []secrets.Secret) ([]secrets.Secret, error) {
 	var (
 		err     error
-		newSecs = make([]secrets.Secret, len(secs))
+		newSecs = make([]secrets.Secret, len(cachedSecs))
 	)
 
-	for i, sec := range secs {
-		newSecs[i], err = c.touchSecret(ctx, sec)
+	for i, sec := range cachedSecs {
+		id := c.cacheToOrigId[sec.ID()]
+		fixedSec := secrets.NewSingleFromSecret(sec, secrets.WithID(id))
+		newSecs[i], err = c.touchSecret(ctx, fixedSec, sec.ID(), id)
 		if err != nil {
-			return secs, nil
+			return nil, err
 		}
 	}
 
 	return newSecs, nil
+}
+
+func (c *Cache) rewriteCachedIds(cachedSecs []secrets.Secret) []secrets.Secret {
+	origSecs := make([]secrets.Secret, len(cachedSecs))
+	for i, sec := range cachedSecs {
+		id := c.cacheToOrigId[sec.ID()]
+		origSecs[i] = secrets.NewSingleFromSecret(sec, secrets.WithID(id))
+	}
+	return origSecs
+}
+
+func (c *Cache) touchSecretsFromOrig(ctx context.Context, secs []secrets.Secret) ([]secrets.Secret, error) {
+	for _, sec := range secs {
+		_, err := c.touchSecret(ctx, sec, "", sec.ID())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return secs, nil
 }
 
 // GetSecretsByName returns the list of secrets with the given name from
@@ -104,8 +145,10 @@ func (c *Cache) GetSecretsByName(ctx context.Context, name string) ([]secrets.Se
 	secs, _ := c.Memory.GetSecretsByName(ctx, name)
 	if len(secs) > 0 {
 		if c.touchOnRead {
-			return c.touchSecrets(ctx, secs)
+			return c.touchSecretsFromCache(ctx, secs)
 		}
+
+		return c.rewriteCachedIds(secs), nil
 	}
 
 	secs, err := c.Keeper.GetSecretsByName(ctx, name)
@@ -113,7 +156,7 @@ func (c *Cache) GetSecretsByName(ctx context.Context, name string) ([]secrets.Se
 		return nil, err
 	}
 
-	return c.touchSecrets(ctx, secs)
+	return c.touchSecretsFromOrig(ctx, secs)
 }
 
 // SetSecret cannot be used and always fails with an error.
@@ -134,5 +177,14 @@ func (c *Cache) MoveSecret(context.Context, string, string) (secrets.Secret, err
 // DeleteSecret deletes the secret with the given ID from the cache only. This
 // does not delete the secret from the wrapped secret keeper.
 func (c *Cache) DeleteSecret(ctx context.Context, id string) error {
-	return c.Memory.DeleteSecret(ctx, id)
+	if cacheId, isCached := c.origToCacheId[id]; isCached {
+		err := c.Memory.DeleteSecret(ctx, cacheId)
+		if err != nil {
+			return err
+		}
+
+		delete(c.origToCacheId, id)
+		delete(c.cacheToOrigId, cacheId)
+	}
+	return nil
 }

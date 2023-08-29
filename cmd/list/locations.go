@@ -47,6 +47,6 @@ func RunListLocations(cmd *cobra.Command, args []string) {
 	}
 
 	for _, loc := range locs {
-		s.Logger.Print(loc)
+		s.Printer.Print(loc)
 	}
 }

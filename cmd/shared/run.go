@@ -12,6 +12,7 @@ import (
 
 func RunRoot(cmd *cobra.Command, args []string) {
 	Logger = log.New(cmd.OutOrStderr(), "", 0)
+	Printer = log.New(cmd.OutOrStdout(), "", 0)
 
 	var err error
 	err = config.Instance().Load(ConfigFile)

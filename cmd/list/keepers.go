@@ -16,6 +16,6 @@ var KeepersCmd = &cobra.Command{
 
 func RunListKeepers(cmd *cobra.Command, args []string) {
 	for _, kt := range plugin.List() {
-		s.Logger.Print(kt)
+		s.Printer.Print(kt)
 	}
 }

@@ -6,6 +6,8 @@ WIP  TBD
  * Fix: Correct the gRPC client setup/dialing code.
  * Fix: URL stringification in the gRPC server.
  * Fix: Handle `$HOME` and `~` in `keepass` and `low` keeper paths.
+ * Fix: All output was previously going to stderr, when some output needed to be sent to stdout instead. Stdout is now used correctly in several cases.
+ * Fix: Correct bugs that prevented the caching keeper from working. Added tests.
 
 v0.0.1  2023-08-28
 

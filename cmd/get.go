@@ -95,7 +95,7 @@ func RunGet(cmd *cobra.Command, args []string) {
 		if one {
 			ms := convertToMap(secs)
 			for k, v := range ms[0] {
-				s.Logger.Printf("export %s%s=%s", strings.ToUpper(envPrefix), strings.ToUpper(k), v)
+				s.Printer.Printf("export %s%s=%s", strings.ToUpper(envPrefix), strings.ToUpper(k), v)
 			}
 		} else {
 			s.Logger.Panic("Cannot enable --output=env without --one")
@@ -112,11 +112,11 @@ func RunGet(cmd *cobra.Command, args []string) {
 		} else if err := enc.Encode(map[string]any{"secrets": ms}); err != nil {
 			s.Logger.Panic(err)
 		}
-		s.Logger.Print(sb.String())
+		s.Printer.Print(sb.String())
 	case "password":
 		if showPassword {
 			for _, sec := range secs {
-				s.Logger.Print(sec.Password())
+				s.Printer.Print(sec.Password())
 			}
 		} else {
 			s.Logger.Panic("Cannot enable --output=password without --show-password")
@@ -137,7 +137,7 @@ func RunGet(cmd *cobra.Command, args []string) {
 		} else if err := enc.Encode(map[string]any{"secrets": ms}); err != nil {
 			s.Logger.Panic(err)
 		}
-		s.Logger.Print(sb.String())
+		s.Printer.Print(sb.String())
 	}
 }
 

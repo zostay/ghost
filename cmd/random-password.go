@@ -96,7 +96,7 @@ func RunRandomPassword(*cobra.Command, []string) {
 
 	shuffle(pw)
 
-	s.Logger.Println(string(pw))
+	s.Printer.Println(string(pw))
 }
 
 func selectChars(weight float32, length int) int {
@@ -145,7 +145,7 @@ func runCHBS() {
 		}
 	}
 
-	s.Logger.Println(pw)
+	s.Printer.Println(pw)
 }
 
 func sample[T any](from []T, count int) []T {
