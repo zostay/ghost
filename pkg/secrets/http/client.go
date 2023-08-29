@@ -17,8 +17,8 @@ type Client struct {
 var _ secrets.Keeper = &Client{}
 
 // NewClient creates a new client for the secret keeper service.
-func NewClient() *Client {
-	return &Client{}
+func NewClient(client KeeperClient) *Client {
+	return &Client{client}
 }
 
 // ListLocations retrieves the list of locations from the secret keeper service.

@@ -2,7 +2,10 @@ package low
 
 import (
 	"context"
+	"os"
 	"reflect"
+
+	"github.com/mitchellh/go-homedir"
 
 	"github.com/zostay/ghost/pkg/config"
 	"github.com/zostay/ghost/pkg/plugin"
@@ -25,7 +28,12 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 		return nil, plugin.ErrConfig
 	}
 
-	return NewLowSecurity(cfg.Path), nil
+	path, err := homedir.Expand(os.ExpandEnv(cfg.Path))
+	if err != nil {
+		return nil, err
+	}
+
+	return NewLowSecurity(path), nil
 }
 
 func init() {

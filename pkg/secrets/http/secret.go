@@ -34,7 +34,7 @@ func FromSecret(s secrets.Secret) *Secret {
 		Password:     s.Password(),
 		Type:         s.Type(),
 		Fields:       s.Fields(),
-		Url:          s.Url().String(),
+		Url:          secrets.UrlString(s),
 		Location:     s.Location(),
 		LastModified: timestamppb.New(s.LastModified()),
 	}

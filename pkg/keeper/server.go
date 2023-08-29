@@ -16,25 +16,17 @@ import (
 	"github.com/zostay/ghost/pkg/secrets/http"
 )
 
-const serviceName = "ghost.keeper"
-
-func makeSocketName() string {
-	tmp := os.TempDir()
-	uid := os.Getuid()
-	return filepath.Join(tmp, fmt.Sprintf("%s.%d", serviceName, uid))
-}
-
 func makeRunName() string {
 	tmp := os.TempDir()
 	uid := os.Getuid()
-	return filepath.Join(tmp, fmt.Sprintf("%s.%d.run", serviceName, uid))
+	return filepath.Join(tmp, fmt.Sprintf("%s.%d.run", http.ServiceName, uid))
 }
 
 // StartServer starts the keeper server. As of this writing, it will always be
 // configured to run in an automatically named unix socket in the system's temp
 // directory. It will also write a pid file to the same directory.
 func StartServer(logger *log.Logger, kpr secrets.Keeper) error {
-	sockName := makeSocketName()
+	sockName := http.MakeHttpServerSocketName()
 	sock, err := net.Listen("unix", sockName)
 	if err != nil {
 		return fmt.Errorf("failed to listen on unix socket %q: %w", sockName, err)

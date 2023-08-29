@@ -3,6 +3,9 @@ WIP  TBD
  * Fix: Implemented handling of duration decoding in keeper configuration.
  * Fix: Correct problems with looking up keeper configuration during startup.
  * Fix: Do not report error creating PID file when no error occurred.
+ * Fix: Correct the gRPC client setup/dialing code.
+ * Fix: URL stringification in the gRPC server.
+ * Fix: Handle `$HOME` and `~` in `keepass` and `low` keeper paths.
 
 v0.0.1  2023-08-28
 
