@@ -44,6 +44,7 @@ linters-settings:
           - github.com/golang
           - github.com/gopasspw/pinentry
           - github.com/mitchellh/mapstructure
+          - github.com/mitchellh/go-homedir
           - github.com/oklog/ulid
           - github.com/spf13/cobra
           - github.com/spf13/pflag
