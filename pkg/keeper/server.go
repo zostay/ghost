@@ -66,7 +66,9 @@ func makePidFile(logger *log.Logger) string {
 	name := makeRunName()
 	pid := fmt.Sprintf("%d", os.Getpid())
 	err := os.WriteFile(name, []byte(pid), 0o600)
-	logger.Printf("failed to write pid file %q: %v", name, err)
+	if err != nil {
+		logger.Printf("failed to write pid file %q: %v", name, err)
+	}
 	return name
 }
 

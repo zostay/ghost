@@ -1,3 +1,9 @@
+WIP  TBD
+
+ * Fix: Implemented handling of duration decoding in keeper configuration.
+ * Fix: Correct problems with looking up keeper configuration during startup.
+ * Fix: Do not report error creating PID file when no error occurred.
+
 v0.0.1  2023-08-28
 
  * Initial release.

@@ -105,7 +105,7 @@ func Validate(ctx context.Context, name string) error {
 func Exists(ctx context.Context, name string) bool {
 	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)
 	if !isBuilder {
-		panic("unable to find the secret keeper factory in context")
+		panic("BUG in ghost: unable to find the secret keeper factory in context")
 	}
 
 	return builder.c.Keepers[name] != nil
@@ -124,6 +124,18 @@ func Decode(ctx context.Context, name string) (any, error) {
 	return builder.Decode(name)
 }
 
+func mpDecode(kc any, cfg any) error {
+	mpConf := &mapstructure.DecoderConfig{
+		DecodeHook: mapstructure.StringToTimeDurationHookFunc(),
+		Result:     cfg,
+	}
+	dec, err := mapstructure.NewDecoder(mpConf)
+	if err != nil {
+		return err
+	}
+	return dec.Decode(kc)
+}
+
 // Decode decodes the configuration for the named secret keeper into its
 // preferred configuration type. This is useful for tools that want to
 // manipulate the configuration directly. This will have any secret references
@@ -140,7 +152,7 @@ func (mb *builderContext) Decode(name string) (any, error) {
 	}
 
 	cfg := reflect.New(typBuilder.Config).Interface()
-	err = mapstructure.Decode(kc, cfg)
+	err = mpDecode(kc, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to structure configuration for %q: %w", name, err)
 	}
@@ -161,12 +173,12 @@ func (mb *builderContext) Build(name string) (secrets.Keeper, error) {
 	}
 
 	cfg := reflect.New(typBuilder.Config).Interface()
-	err = mapstructure.Decode(kc, cfg)
+	err = mpDecode(kc, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("unable to structure configuration for %q: %w", name, err)
 	}
 
-	return typBuilder.Builder(mb.ctx, cfg)
+	return typBuilder.Builder(mb, cfg)
 }
 
 // Validate checks that the configuration is correct for the named secret
@@ -183,7 +195,7 @@ func (mb *builderContext) Validate(name string) error {
 	}
 
 	cfg := reflect.New(typBuilder.Config).Interface()
-	err = mapstructure.Decode(kc, cfg)
+	err = mpDecode(kc, cfg)
 	if err != nil {
 		return fmt.Errorf("unable to structure configuration for %q: %w", name, err)
 	}
@@ -192,7 +204,7 @@ func (mb *builderContext) Validate(name string) error {
 		return nil
 	}
 
-	return typBuilder.Validator(mb.ctx, cfg)
+	return typBuilder.Validator(mb, cfg)
 }
 
 func (mb *builderContext) configAndBuilder(name string) (kc config.KeeperConfig, r plugin.RegisteredConfig, err error) {
@@ -237,7 +249,7 @@ func (mb *builderContext) resolveSecretRefsInMap(
 	for k, v := range kc {
 		if k == config.SecretRefKey {
 			var ref config.SecretRef
-			err := mapstructure.Decode(v, &ref)
+			err := mpDecode(v, &ref)
 			if err != nil {
 				return nil, err
 			}
