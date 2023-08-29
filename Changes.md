@@ -1,4 +1,4 @@
-WIP  TBD
+v0.0.2  2023-08-29
 
  * Fix: Implemented handling of duration decoding in keeper configuration.
  * Fix: Correct problems with looking up keeper configuration during startup.
