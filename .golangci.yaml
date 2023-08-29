@@ -39,16 +39,17 @@ linters-settings:
           - "!**/pkg/secrets/keepertest/*.go"
         allow:
           - "$gostd"
+          - github.com/ansd/lastpass-go
+          - github.com/gobwas/glob
+          - github.com/golang
+          - github.com/gopasspw/pinentry
+          - github.com/mitchellh/mapstructure
+          - github.com/oklog/ulid
           - github.com/spf13/cobra
           - github.com/spf13/pflag
-          - github.com/zostay
-          - github.com/oklog/ulid
-          - github.com/ansd/lastpass-go
-          - github.com/zalando/go-keyring
           - github.com/tobischo/gokeepasslib
-          - github.com/gopasspw/pinentry
-          - github.com/golang
-          - github.com/gobwas/glob
+          - github.com/zalando/go-keyring
+          - github.com/zostay
 
       tests:
         files:

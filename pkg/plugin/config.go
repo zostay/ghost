@@ -94,7 +94,7 @@ var configs = map[string]RegisteredConfig{}
 // time, new plugins require a pull request or a fork of the software. Patches welcome.
 //
 // If there's demand for more custom plugins, I could look into a plugin
-// interface like Hashcorp's or using a tool like Yaegi. ~~ zostay
+// interface like Hashcorp's or using a tool like Yaegi. ~~ zostay.
 func Register(
 	name string,
 	config reflect.Type,

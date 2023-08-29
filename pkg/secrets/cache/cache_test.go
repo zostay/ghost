@@ -9,7 +9,7 @@ import (
 	"github.com/zostay/ghost/pkg/secrets/memory"
 )
 
-func TestCache(t *testing.T) {
+func TestCache(t *testing.T) { //nolint:tparallel // it is parallel, you dolt
 	t.Parallel()
 
 	factory := func() (secrets.Keeper, error) {

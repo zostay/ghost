@@ -54,7 +54,7 @@ func setupCommands() error {
 		for name, desc := range pc.CmdConfig.Fields {
 			var secOpt LiteralOrSecretRef
 			subCmd.Flags().StringVar(&secOpt.Literal, name, "", desc)
-			subCmd.Flags().Var(&flag.Secret{&secOpt.Ref}, name+"-secret", desc+" (set from a secret lookup)")
+			subCmd.Flags().Var(&flag.Secret{SecretRef: &secOpt.Ref}, name+"-secret", desc+" (set from a secret lookup)")
 			fields[name] = &secOpt
 		}
 

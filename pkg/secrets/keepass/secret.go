@@ -137,10 +137,6 @@ func makeUUID(id string) (keepass.UUID, error) {
 	return uuid, err
 }
 
-func (s *Secret) len() int {
-	return len(s.e.Values) + len(s.newFields)
-}
-
 func (s *Secret) set(key, value string) {
 	if s.newFields == nil {
 		s.newFields = map[string]string{}

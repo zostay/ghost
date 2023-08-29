@@ -53,10 +53,10 @@ func RunRandomPassword(*cobra.Command, []string) {
 	}
 
 	totes := lc + uc + digits + symbols
-	lc = lc / totes
-	uc = uc / totes
-	digits = digits / totes
-	symbols = symbols / totes
+	lc /= totes
+	uc /= totes
+	digits /= totes
+	symbols /= totes
 
 	lcCount := selectChars(lc, length)
 	ucCount := selectChars(uc, length)
@@ -64,25 +64,27 @@ func RunRandomPassword(*cobra.Command, []string) {
 	symbolCount := selectChars(symbols, length)
 
 	for (lcCount + ucCount + digitCount + symbolCount) > length {
-		if lcCount > generic.Max(ucCount, generic.Max(digitCount, symbolCount)) {
+		switch {
+		case lcCount > generic.Max(ucCount, generic.Max(digitCount, symbolCount)):
 			lcCount--
-		} else if ucCount > generic.Max(lcCount, generic.Max(digitCount, symbolCount)) {
+		case ucCount > generic.Max(lcCount, generic.Max(digitCount, symbolCount)):
 			ucCount--
-		} else if digitCount > generic.Max(lcCount, generic.Max(ucCount, symbolCount)) {
+		case digitCount > generic.Max(lcCount, generic.Max(ucCount, symbolCount)):
 			digitCount--
-		} else {
+		default:
 			symbolCount--
 		}
 	}
 
 	for (lcCount + ucCount + digitCount + symbolCount) < length {
-		if lcCount > 0 && lcCount < generic.Min(ucCount, generic.Min(digitCount, symbolCount)) {
+		switch {
+		case lcCount > 0 && lcCount < generic.Min(ucCount, generic.Min(digitCount, symbolCount)):
 			lcCount++
-		} else if ucCount > 0 && ucCount < generic.Min(lcCount, generic.Min(digitCount, symbolCount)) {
+		case ucCount > 0 && ucCount < generic.Min(lcCount, generic.Min(digitCount, symbolCount)):
 			ucCount++
-		} else if digitCount > 0 && digitCount < generic.Min(lcCount, generic.Min(ucCount, symbolCount)) {
+		case digitCount > 0 && digitCount < generic.Min(lcCount, generic.Min(ucCount, symbolCount)):
 			digitCount++
-		} else if symbolCount > 0 {
+		case symbolCount > 0:
 			symbolCount++
 		}
 	}

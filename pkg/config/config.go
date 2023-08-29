@@ -22,7 +22,7 @@ type Config struct {
 	Keepers      map[string]KeeperConfig `yaml:"keepers"`
 }
 
-// configPath locates teh configuration file.
+// configPath locates the configuration file.
 func configPath(requestedPath string) (string, error) {
 	if requestedPath != "" {
 		requestedDir := filepath.Dir(requestedPath)
