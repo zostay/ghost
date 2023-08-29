@@ -1,4 +1,4 @@
-WIP   TBD
+WIP  TBD
 
  * Initial release.
  * Provides the `config delete` sub-command.
