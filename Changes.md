@@ -1,3 +1,7 @@
+WIP  TBD
+
+ * Fix: When secrets are printed by `ghost` commands, hide empty fields and do not panic on empty URL.
+
 v0.0.3  2023-08-30
 
  * Fix: The `ghost set` handling of `--id` and `--name` has been fixed.
