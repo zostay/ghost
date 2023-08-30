@@ -264,7 +264,10 @@ func (s *Secret) DeleteField(key string) {
 
 // LastModified returns the last modification time of the Keepass entry.
 func (s *Secret) LastModified() time.Time {
-	return s.e.Times.LastModificationTime.Time
+	if s.e.Times.LastModificationTime != nil {
+		return s.e.Times.LastModificationTime.Time
+	}
+	return time.Time{}
 }
 
 // Url returns the URL of the Keepass entry.
