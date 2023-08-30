@@ -29,6 +29,8 @@ var (
 )
 
 func init() {
+	setCmd.Flags().StringVar(&id, "id", "", "The ID of an existing secret to update")
+	setCmd.Flags().StringVar(&name, "name", "", "The new name to set")
 	setCmd.Flags().StringVar(&username, "username", "", "The new username to set")
 	setCmd.Flags().StringVar(&password, "password", "", "The new password to set")
 	setCmd.Flags().BoolVar(&prompt, "prompt", false, "Prompt for the password")
@@ -111,7 +113,7 @@ func RunSet(cmd *cobra.Command, args []string) {
 		if moveSecret || copySecret {
 			s.Logger.Panicf("The secret is new. No %s allowed.", opVerb)
 		}
-		sec = secrets.NewSecret("", "", "", secrets.WithLocation(location))
+		sec = secrets.NewSecret(name, "", "", secrets.WithLocation(location))
 	case 1:
 		sec = secs[0]
 		if location != "" && location != sec.Location() && !moveSecret && !copySecret {

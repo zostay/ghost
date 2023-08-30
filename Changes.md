@@ -1,3 +1,7 @@
+WIP  TBD
+
+ * Fix: The `ghost set` handling of `--id` and `--name` has been fixed.
+
 v0.0.2  2023-08-29
 
  * Fix: Implemented handling of duration decoding in keeper configuration.
