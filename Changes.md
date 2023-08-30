@@ -1,3 +1,7 @@
+WIP  TBD
+
+ * Fix: The secret printing function had ambiguous field display logic which has been corrected.
+
 v0.0.5  2023-08-30
 
  * Fix: Empty last modified time in Keepass will not panic anymore.
