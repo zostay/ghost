@@ -1,4 +1,4 @@
-WIP  TBD
+v0.0.4  2023-08-30
 
  * Fix: When secrets are printed by `ghost` commands, hide empty fields and do not panic on empty URL.
 
