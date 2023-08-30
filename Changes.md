@@ -1,4 +1,4 @@
-WIP  TBD
+v0.0.3  2023-08-30
 
  * Fix: The `ghost set` handling of `--id` and `--name` has been fixed.
 
