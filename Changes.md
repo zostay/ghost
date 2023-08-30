@@ -1,4 +1,4 @@
-WIP  TBD
+v0.0.6  2023-08-30
 
  * Fix: The secret printing function had ambiguous field display logic which has been corrected.
 
