@@ -120,3 +120,29 @@ func StopServer(immediacy StopImmediacy) error {
 
 	return nil
 }
+
+// CheckServer checks if the server is alive. Returns an error if it is night.
+func CheckServer() error {
+	pidFile := makeRunName()
+	pidBytes, err := os.ReadFile(pidFile)
+	if err != nil {
+		return fmt.Errorf("unable to locate pid file %q; you'll have to kill the process manually: %w", pidFile, err)
+	}
+
+	pid, err := strconv.Atoi(string(pidBytes))
+	if err != nil {
+		return fmt.Errorf("unable to read pid file %q; you'll have to kill the process manually: %w", pidFile, err)
+	}
+
+	p, err := os.FindProcess(pid)
+	if err != nil {
+		return fmt.Errorf("unable to find process for pid %d: %w", pid, err)
+	}
+
+	err = p.Signal(syscall.Signal(0))
+	if err != nil {
+		return fmt.Errorf("unable to verify process for pid %d: %w", pid, err)
+	}
+
+	return nil
+}

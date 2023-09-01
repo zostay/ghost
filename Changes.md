@@ -1,3 +1,7 @@
+WIP  TBD
+
+ * Add a `keeper.CheckServer()` function for checking to see if the keeper service is currently running.
+
 v0.0.6  2023-08-30
 
  * Fix: The secret printing function had ambiguous field display logic which has been corrected.
