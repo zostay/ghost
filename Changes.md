@@ -1,4 +1,4 @@
-WIP  TBD
+v0.1.0  2023-08-31
 
  * Add a `keeper.CheckServer()` function for checking to see if the keeper service is currently running.
 
