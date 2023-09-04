@@ -1,6 +1,7 @@
 WIP  TBD
 
- * Add the `keeper.Sync` object to help with copying between between keepers with `AddSecret`, `AddLocationSecret`, `AddSecretKeeper`, `CopyTo`, and `DeleteAbsent` methods and the `NewSync` constructor.
+ * Rewrite the `ghost sync` command to use name, username, and location as the index key.
+ * Add the `keeper.Sync` object to help with copying between between keepers with `AddSecret`, `AddLocationSecret`, `AddSecretKeeper`, `CopyTo`, and `DeleteAbsent` methods and the `NewSync` constructor. This provides the implementation for the rewritten `ghost sync` command.
  * Add retries with automatic back-off to the LastPass secret keeper using the same back-off strategy that lastpass-cli uses.
 
 v0.1.0  2023-08-31
