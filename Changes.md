@@ -1,3 +1,8 @@
+WIP  TBD
+
+ * Add the `keeper.Sync` object to help with copying between between keepers with `AddSecret`, `AddLocationSecret`, `AddSecretKeeper`, `CopyTo`, and `DeleteAbsent` methods and the `NewSync` constructor.
+ * Add retries with automatic back-off to the LastPass secret keeper using the same back-off strategy that lastpass-cli uses.
+
 v0.1.0  2023-08-31
 
  * Add a `keeper.CheckServer()` function for checking to see if the keeper service is currently running.
