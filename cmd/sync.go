@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"context"
+	"errors"
 
 	"github.com/spf13/cobra"
-	"github.com/zostay/go-std/set"
 
 	s "github.com/zostay/ghost/cmd/shared"
 	"github.com/zostay/ghost/pkg/config"
@@ -15,15 +15,30 @@ var (
 	syncCmd = &cobra.Command{
 		Use:   "sync <from> <to>",
 		Short: "Synchronize secrets between secret keepers",
-		Args:  cobra.ExactArgs(2),
-		Run:   RunSync,
+		Long: ` The synchronize routine will copy all secrets from one secret keeper to 
+another. This is done by using the name, username, and location as a unique key 
+for each secret. If more than one secret exists with the same key in the 
+original, this operation will fail to synchronize unless 
+the --ignore-duplicates option is given. When given, the most recent of the 
+duplicates will be transferred.
+
+ Normally, this operation only adds secrets to the destination. Using
+the --delete option, however, will cause any secret found in the destination 
+not matching one in the source to be deleted.
+
+ Please note that sync, especially with a large LastPass database can take 
+several minutes or even hours due to API rate limits.`,
+		Args: cobra.ExactArgs(2),
+		Run:  RunSync,
 	}
 
-	alsoDelete bool
+	alsoDelete      bool
+	ignoreDuplicate bool
 )
 
 func init() {
 	syncCmd.Flags().BoolVar(&alsoDelete, "delete", false, "Delete secrets from the destination keeper")
+	syncCmd.Flags().BoolVar(&ignoreDuplicate, "ignore-duplicates", false, "When synchronizing, ignore duplicates (keep latest by last-modified date)")
 }
 
 func RunSync(cmd *cobra.Command, args []string) {
@@ -35,79 +50,42 @@ func RunSync(cmd *cobra.Command, args []string) {
 	fromKpr, err := keeper.Build(ctx, fromKeeper)
 	if err != nil {
 		s.Logger.Panic(err)
+		return
 	}
 
 	toKpr, err := keeper.Build(ctx, toKeeper)
 	if err != nil {
 		s.Logger.Panic(err)
+		return
 	}
 
-	fromLocs, err := fromKpr.ListLocations(ctx)
+	syncer, err := keeper.NewSync()
 	if err != nil {
 		s.Logger.Panic(err)
+		return
 	}
 
-	toLocs, err := toKpr.ListLocations(ctx)
+	err = syncer.AddSecretKeeper(ctx, fromKpr, ignoreDuplicate)
+	if err != nil {
+		if errors.Is(err, keeper.ErrDuplicate) {
+			s.Logger.Panic("The source secret keeper contains secrets with duplicate name, username, and location. Either de-duplicate or use --ignore-duplicates.")
+			return
+		}
+		s.Logger.Panic(err)
+		return
+	}
+
+	err = syncer.CopyTo(ctx, toKpr)
 	if err != nil {
 		s.Logger.Panic(err)
-	}
-
-	fromLocSet := set.New(fromLocs...)
-	toLocSet := set.New(toLocs...)
-
-	commonLocs, toAddLocs, toDelLocs := set.Diff(fromLocSet, toLocSet)
-	upsertLocs := set.Union(commonLocs, toAddLocs)
-	for _, loc := range upsertLocs.Keys() {
-		fromIds, err := fromKpr.ListSecrets(ctx, loc)
-		if err != nil {
-			s.Logger.Panic(err)
-		}
-
-		toIds, err := toKpr.ListSecrets(ctx, loc)
-		if err != nil {
-			s.Logger.Panic(err)
-		}
-
-		fromIdSet := set.New(fromIds...)
-		toIdSet := set.New(toIds...)
-
-		commonIds, toAddIds, toDelIds := set.Diff(fromIdSet, toIdSet)
-		upsertIds := set.Union(commonIds, toAddIds)
-		for _, id := range upsertIds.Keys() {
-			sec, err := fromKpr.GetSecret(ctx, id)
-			if err != nil {
-				s.Logger.Panic(err)
-			}
-
-			_, err = toKpr.SetSecret(ctx, sec)
-			if err != nil {
-				s.Logger.Panic(err)
-			}
-		}
-
-		if alsoDelete {
-			for _, id := range toDelIds.Keys() {
-				err := toKpr.DeleteSecret(ctx, id)
-				if err != nil {
-					s.Logger.Panic(err)
-				}
-			}
-		}
+		return
 	}
 
 	if alsoDelete {
-		for _, loc := range toDelLocs.Keys() {
-			toIds, err := toKpr.ListSecrets(ctx, loc)
-			if err != nil {
-				s.Logger.Panic(err)
-			}
-
-			for _, id := range toIds {
-				err := toKpr.DeleteSecret(ctx, id)
-				if err != nil {
-					s.Logger.Panic(err)
-				}
-			}
+		err = syncer.DeleteAbsent(ctx, toKpr)
+		if err != nil {
+			s.Logger.Panic(err)
+			return
 		}
 	}
 }
