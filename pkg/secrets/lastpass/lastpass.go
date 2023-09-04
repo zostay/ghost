@@ -3,12 +3,17 @@ package lastpass
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
+	"time"
 
 	"github.com/ansd/lastpass-go"
 	"github.com/zostay/go-std/set"
 
 	"github.com/zostay/ghost/pkg/secrets"
 )
+
+var ErrTooManyRetries = errors.New("too many retries")
 
 // LastPassClient defines the interface required for a LastPass client.
 // Normally, this is fulfilled by lastpass.Client, but is handled as an
@@ -25,6 +30,33 @@ type LastPassClient interface {
 
 	// Delete deletes a secret.
 	Delete(ctx context.Context, a *lastpass.Account) error
+}
+
+func _retry[T any](run func() (T, error)) (t T, err error) {
+	backoff := 1 * time.Millisecond
+	retriesLeft := 20
+	for {
+		if retriesLeft <= 0 {
+			err = fmt.Errorf("too many retries: %w", err)
+			return
+		}
+
+		<-time.After(backoff)
+
+		t, err = run()
+		if err != nil {
+			// this is what the LastPass CLI does...
+			if strings.Contains(err.Error(), "429") {
+				backoff *= 8
+			} else {
+				backoff *= 2
+			}
+			retriesLeft--
+			continue
+		}
+
+		return
+	}
 }
 
 // LastPass is a secret Keeper that gets secrets from the LastPass
@@ -56,9 +88,15 @@ func NewLastPass(ctx context.Context, username, password string) (*LastPass, err
 	return &LastPass{lp}, nil
 }
 
+func (l *LastPass) listAccounts(ctx context.Context) ([]*lastpass.Account, error) {
+	return _retry[[]*lastpass.Account](func() ([]*lastpass.Account, error) {
+		return l.lp.Accounts(ctx)
+	})
+}
+
 // ListLocations returns a list of LastPass folders.
 func (l *LastPass) ListLocations(ctx context.Context) ([]string, error) {
-	as, err := l.lp.Accounts(ctx)
+	as, err := l.listAccounts(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +111,7 @@ func (l *LastPass) ListLocations(ctx context.Context) ([]string, error) {
 
 // ListSecrets returns a list of secrets in each folder.
 func (l *LastPass) ListSecrets(ctx context.Context, location string) ([]string, error) {
-	as, err := l.lp.Accounts(ctx)
+	as, err := l.listAccounts(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +130,7 @@ func (l *LastPass) getAccount(
 	ctx context.Context,
 	id string,
 ) (*lastpass.Account, error) {
-	as, err := l.lp.Accounts(ctx)
+	as, err := l.listAccounts(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +160,7 @@ func (l *LastPass) GetSecretsByName(
 	ctx context.Context,
 	name string,
 ) ([]secrets.Secret, error) {
-	as, err := l.lp.Accounts(ctx)
+	as, err := l.listAccounts(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +173,13 @@ func (l *LastPass) GetSecretsByName(
 	}
 
 	return secrets, nil
+}
+
+func (l *LastPass) addAccount(ctx context.Context, acc *lastpass.Account) error {
+	_, err := _retry[struct{}](func() (struct{}, error) {
+		return struct{}{}, l.lp.Add(ctx, acc)
+	})
+	return err
 }
 
 // SetSecret sets the secret value in the LastPass service.
@@ -151,14 +196,21 @@ func (l *LastPass) SetSecret(
 		newSec := fromSecret(secret)
 		newSec.Account.ID = ""
 
-		err = l.lp.Add(ctx, newSec.Account)
+		err = l.addAccount(ctx, newSec.Account)
 
 		return newSec, err
 	}
 
 	newSec := fromSecret(secret)
-	err = l.lp.Add(ctx, newSec.Account)
+	err = l.addAccount(ctx, newSec.Account)
 	return newSec, err
+}
+
+func (l *LastPass) deleteAccount(ctx context.Context, acc *lastpass.Account) error {
+	_, err := _retry[struct{}](func() (struct{}, error) {
+		return struct{}{}, l.lp.Delete(ctx, acc)
+	})
+	return err
 }
 
 // DeleteSecret removes the account from LastPass.
@@ -171,7 +223,14 @@ func (l *LastPass) DeleteSecret(ctx context.Context, id string) error {
 		return err
 	}
 
-	return l.lp.Delete(ctx, a)
+	return l.deleteAccount(ctx, a)
+}
+
+func (l *LastPass) updateAccount(ctx context.Context, acc *lastpass.Account) error {
+	_, err := _retry[struct{}](func() (struct{}, error) {
+		return struct{}{}, l.lp.Update(ctx, acc)
+	})
+	return err
 }
 
 // CopySecret copies the account from one group to another in LastPass.
@@ -187,7 +246,7 @@ func (l *LastPass) CopySecret(
 	newSec := newSecret(a)
 	newSec.Account.ID = ""
 	newSec.Account.Group = grp
-	return newSec, l.lp.Update(ctx, newSec.Account)
+	return newSec, l.updateAccount(ctx, newSec.Account)
 }
 
 // MoveSecret copies the account to a new group and deletes the old one.
@@ -202,5 +261,5 @@ func (l *LastPass) MoveSecret(
 
 	newSec := newSecret(a)
 	newSec.Account.Group = grp
-	return newSec, l.lp.Update(ctx, newSec.Account)
+	return newSec, l.updateAccount(ctx, newSec.Account)
 }

@@ -102,6 +102,12 @@ func (s *Secret) parseNotes() {
 	}
 
 	flds := parseNotes(s.Account.Notes)
+	if flds == nil {
+		s.notes = map[string]string{
+			"Notes": s.Account.Notes,
+		}
+	}
+
 	s.typ = flds["NoteType"]
 	delete(flds, "NoteType")
 	s.notes = flds

@@ -238,13 +238,13 @@ func (k *Keepass) SetSecret(
 	secret secrets.Secret,
 ) (secrets.Secret, error) {
 	g := k.ensureGroupExists(secret.Location())
-	foundSecret, err := k.GetSecret(ctx, secret.ID())
 
 	var (
 		newSec *Secret
 		isNew  bool
 	)
 
+	foundSecret, err := k.GetSecret(ctx, secret.ID())
 	if err != nil {
 		if errors.Is(err, secrets.ErrNotFound) {
 			isNew = true
