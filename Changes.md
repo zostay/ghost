@@ -1,4 +1,4 @@
-WIP  TBD
+v0.2.0  2023-09-04
 
  * Rewrite the `ghost sync` command to use name, username, and location as the index key.
  * Add the `keeper.Sync` object to help with copying between between keepers with `AddSecret`, `AddLocationSecret`, `AddSecretKeeper`, `CopyTo`, and `DeleteAbsent` methods and the `NewSync` constructor. This provides the implementation for the rewritten `ghost sync` command.
