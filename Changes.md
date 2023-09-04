@@ -3,6 +3,7 @@ WIP  TBD
  * Rewrite the `ghost sync` command to use name, username, and location as the index key.
  * Add the `keeper.Sync` object to help with copying between between keepers with `AddSecret`, `AddLocationSecret`, `AddSecretKeeper`, `CopyTo`, and `DeleteAbsent` methods and the `NewSync` constructor. This provides the implementation for the rewritten `ghost sync` command.
  * Add retries with automatic back-off to the LastPass secret keeper using the same back-off strategy that lastpass-cli uses.
+ * Fix: Use "UserName" as the field for the `Username` field in Keepass (previously, "Username" was incorrectly used).
 
 v0.1.0  2023-08-31
 

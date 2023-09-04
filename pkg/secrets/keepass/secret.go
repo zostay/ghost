@@ -14,7 +14,7 @@ import (
 
 const (
 	keyTitle    = "Title"
-	keyUsername = "Username"
+	keyUsername = "UserName"
 	keySecret   = "Password"
 	keyType     = "Type"
 	keyURL      = "URL"
