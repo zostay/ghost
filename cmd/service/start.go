@@ -71,7 +71,12 @@ func RunStartService(cmd *cobra.Command, args []string) {
 
 	startPolicyEnforcement(ctx, c)
 
-	err = keeper.StartServer(s.Logger, kpr)
+	err = keeper.StartServer(
+		s.Logger,
+		kpr,
+		keeperService,
+		enforcementPeriod,
+		enforcePolicies)
 	if err != nil {
 		s.Logger.Panic(err)
 	}

@@ -247,6 +247,14 @@ This will start the password service running in the foreground. It can be set to
 
 The `--enforce-all-policies` option will cause the server to locate all policy secret keepers and enforce all lifetime policies periodically. The period is determined by the value defined in `--enforcement-period`, which defaults to every minute. If you only want to enforce some of your policies this way, you can specify the policies using the `--enforce-policy` option instead.
 
+### service status
+
+```
+ghost service status
+```
+
+This will return a message indicating whether the service is running or not. If running, it will also return the PID of the running service, the keeper it is using, and a description of what (if any) policies are being enforced.
+
 ### service stop
 
 ```

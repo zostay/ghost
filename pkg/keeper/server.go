@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	"context"
 	"fmt"
+	"github.com/zostay/ghost/pkg/config"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 	"os"
@@ -9,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"syscall"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -25,7 +29,13 @@ func makeRunName() string {
 // StartServer starts the keeper server. As of this writing, it will always be
 // configured to run in an automatically named unix socket in the system's temp
 // directory. It will also write a pid file to the same directory.
-func StartServer(logger *log.Logger, kpr secrets.Keeper) error {
+func StartServer(
+	logger *log.Logger,
+	kpr secrets.Keeper,
+	name string,
+	enforcementPeriod time.Duration,
+	enforcedPolicies []string,
+) error {
 	sockName := http.MakeHttpServerSocketName()
 	sock, err := net.Listen("unix", sockName)
 	if err != nil {
@@ -42,7 +52,7 @@ func StartServer(logger *log.Logger, kpr secrets.Keeper) error {
 	pidFile := makePidFile(logger)
 	defer func() { _ = os.Remove(pidFile) }()
 
-	svr := http.NewServer(kpr)
+	svr := http.NewServer(kpr, name, enforcementPeriod, enforcedPolicies)
 	grpcServer := grpc.NewServer()
 	http.RegisterKeeperServer(grpcServer, svr)
 	go listenForQuit(gracefulQuitter, grpcServer)
@@ -121,28 +131,53 @@ func StopServer(immediacy StopImmediacy) error {
 	return nil
 }
 
-// CheckServer checks if the server is alive. Returns an error if it is night.
-func CheckServer() error {
+type ServiceStatus struct {
+	Pid               int           // the PID of the service
+	Keeper            string        // the keeper the service is serving
+	EnforcementPeriod time.Duration // the enforcement period
+	EnforcedPolicies  []string      // the policies being enforced
+}
+
+// CheckServer checks if the server is alive and returns a little status
+// structure to describe it. Returns an error if it is not.
+func CheckServer() (*ServiceStatus, error) {
 	pidFile := makeRunName()
 	pidBytes, err := os.ReadFile(pidFile)
 	if err != nil {
-		return fmt.Errorf("unable to locate pid file %q; you'll have to kill the process manually: %w", pidFile, err)
+		return nil, fmt.Errorf("unable to locate pid file %q: %w", pidFile, err)
 	}
 
 	pid, err := strconv.Atoi(string(pidBytes))
 	if err != nil {
-		return fmt.Errorf("unable to read pid file %q; you'll have to kill the process manually: %w", pidFile, err)
+		return nil, fmt.Errorf("unable to read pid file %q: %w", pidFile, err)
 	}
 
 	p, err := os.FindProcess(pid)
 	if err != nil {
-		return fmt.Errorf("unable to find process for pid %d: %w", pid, err)
+		return nil, fmt.Errorf("unable to find process for pid %d: %w", pid, err)
 	}
 
 	err = p.Signal(syscall.Signal(0))
 	if err != nil {
-		return fmt.Errorf("unable to verify process for pid %d: %w", pid, err)
+		return nil, fmt.Errorf("unable to verify process for pid %d: %w", pid, err)
 	}
 
-	return nil
+	c := config.Instance()
+	ctx := WithBuilder(context.Background(), c)
+	client, err := http.BuildServiceClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to build gRPC client: %w", err)
+	}
+
+	info, err := client.GetServiceInfo(ctx, &emptypb.Empty{})
+	if err != nil {
+		return nil, fmt.Errorf("service returned error when queried: %w", err)
+	}
+
+	return &ServiceStatus{
+		Pid:               pid,
+		Keeper:            info.GetKeeper(),
+		EnforcementPeriod: info.GetEnforcementPeriod().AsDuration(),
+		EnforcedPolicies:  info.GetEnforcedPolicies(),
+	}, nil
 }

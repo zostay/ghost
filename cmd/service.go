@@ -14,4 +14,5 @@ var serviceCmd = &cobra.Command{
 func init() {
 	serviceCmd.AddCommand(service.StartCmd)
 	serviceCmd.AddCommand(service.StopCmd)
+	serviceCmd.AddCommand(service.StatusCmd)
 }

@@ -2,6 +2,8 @@ package http
 
 import (
 	"context"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
 
@@ -12,14 +14,26 @@ import (
 type Server struct {
 	UnimplementedKeeperServer
 	secrets.Keeper
+
+	name              string
+	enforcementPeriod time.Duration
+	enforcedPolicies  []string
 }
 
 var _ KeeperServer = &Server{}
 
 // NewServer creates a new gRPC server for the wrapped secret keeper.
-func NewServer(keeper secrets.Keeper) *Server {
+func NewServer(
+	keeper secrets.Keeper,
+	name string,
+	enforcementPeriod time.Duration,
+	enforcedPolicies []string,
+) *Server {
 	return &Server{
-		Keeper: keeper,
+		Keeper:            keeper,
+		name:              name,
+		enforcementPeriod: enforcementPeriod,
+		enforcedPolicies:  enforcedPolicies,
 	}
 }
 
@@ -152,4 +166,16 @@ func (s *Server) DeleteSecret(
 	}
 
 	return &empty.Empty{}, nil
+}
+
+// GetServiceInfo returns the service info for this server.
+func (s *Server) GetServiceInfo(
+	_ context.Context,
+	_ *empty.Empty,
+) (*ServiceInfo, error) {
+	return &ServiceInfo{
+		Keeper:            s.name,
+		EnforcementPeriod: durationpb.New(s.enforcementPeriod),
+		EnforcedPolicies:  s.enforcedPolicies,
+	}, nil
 }
