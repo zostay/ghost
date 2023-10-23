@@ -1,6 +1,6 @@
 # ghost
 
-> *CAUTION:* This is alpha quality software that I use personally. Personally, I trust many of the secure storage systems that this software talks to, however, I do not fully trust this software myself. My intended purpose is personal and for situation, on local machines at which I am personally present, where commands are run directly or nearly directly at my request. I want to build secure software, but no special vetting or SDLC or other kinds of guarantees have been and I'm, at this time, making no warranties, guarantees, or promises regarding the security of this software (see LICENSE for full disclaimer).
+> *CAUTION:* This is alpha quality software that I use personally. Personally, I trust many of the secure storage systems that this software talks to, however, I do not fully trust this software myself. My intended purpose is personal and for situation, on local machines at which I am personally present, where commands are run directly or nearly directly at my request. I want to build secure software, but no special vetting or SDLC or other kinds of guarantees have been implemented. I make no warranties, guarantees, or promises regarding the security of this software (see LICENSE for full disclaimer).
 
 This is a secret toolkit written in Go. I use it to backup my online password vault locally and to provide tooling to allow my scripts and such to retrieve secrets without having to store such things in environment files or other ways that make me nervous.
 
