@@ -1,5 +1,7 @@
 # ghost
 
+> *CAUTION:* This is alpha quality software that I use personally. Personally, I trust many of the secure storage systems that this software talks to, however, I do not fully trust this software myself. My intended purpose is personal and for situation, on local machines at which I am personally present, where commands are run directly or nearly directly at my request. I want to build secure software, but no special vetting or SDLC or other kinds of guarantees have been and I'm, at this time, making no warranties, guarantees, or promises regarding the security of this software (see LICENSE for full disclaimer).
+
 This is a secret toolkit written in Go. I use it to backup my online password vault locally and to provide tooling to allow my scripts and such to retrieve secrets without having to store such things in environment files or other ways that make me nervous.
 
 I only use this on local machines that only I have access. I cannot vouch for the safety of transport or security of storage of any aspect of this system. As per the terms of the license, you use this software entirely at your own risk. I make no guarantees or warranties regarding the security or safety of this system.
@@ -98,7 +100,7 @@ ghost set --name=personal-keepass.kdbx-master-password --prompt
 
 Then, enter your master password.
 
-If you do not trust the system keyring, another option is to configure a password service to run to securely cache the master password in memory. Here's an example configuration that does that:
+If you do not trust the system keyring, another option is to configure a password service to run to securely cache the master password in memory. (By the way, I make no claim that this service is more or less secure than the system keyring. I am merely stating that this is another potential option for storing a master password. I use this option not because I distrust the system keyring, but because this option is more convenient to me personally.) Here's an example configuration that does that:
 
 ```yaml
 master: myPasswords
