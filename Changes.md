@@ -1,4 +1,4 @@
-WIP  TBD
+v0.3.0  2023-10-23
 
  * Add and implement the `GetServiceInfo` endpoint to the gRPC keeper service interface.
  * Add the `ghost service status` command to query the status of the gRPC keeper service, report it's PID, and report the keeper served and the policy enforcement configuration.
