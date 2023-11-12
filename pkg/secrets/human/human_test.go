@@ -1,6 +1,7 @@
 package human_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/zostay/ghost/pkg/secrets"
@@ -9,7 +10,9 @@ import (
 )
 
 func TestHuman(t *testing.T) {
-	t.Skip("normally don't test this because it requires feedback from the user")
+	if os.Getenv("GHOST_TEST_INTERACTIVE") == "" {
+		t.Skip("normally don't test this because it requires feedback from the user")
+	}
 
 	factory := func() (secrets.Keeper, error) {
 		h := human.New()

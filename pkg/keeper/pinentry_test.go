@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +11,9 @@ import (
 )
 
 func TestPinEntry(t *testing.T) {
-	t.Skip("normally don't test this because it requires feedback from the user")
+	if os.Getenv("GHOST_TEST_INTERACTIVE") == "" {
+		t.Skip("normally don't test this because it requires feedback from the user")
+	}
 
 	response, err := keeper.PinEntry(
 		"Title",
