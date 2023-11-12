@@ -10,6 +10,8 @@ func PinEntry(title, desc, prompt, ok string) (string, error) {
 		return "", err
 	}
 
+	defer pi.Close()
+
 	_ = pi.Set("title", title)
 	_ = pi.Set("desc", desc)
 	_ = pi.Set("prompt", prompt)

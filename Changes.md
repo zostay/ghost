@@ -2,6 +2,7 @@ WIP  TBD
 
  * Rename `ghost list keepers` to `ghost list plugins`.
  * Added a few additional tests.
+ * Fix: A bug in how pinentry worked could result in the pinentry display being stuck on the screen permanently. This has been fixed.
  * Fix: The `ghost config list` and `ghost config get` commands failed when secret references failed to fully resolve because they depende upon the secret service or something. Now, it may not list  complete configuration, but shouldn't fail or cause a password propmt just to call these sub-commands.
 
 v0.3.0  2023-10-23
