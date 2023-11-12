@@ -15,7 +15,7 @@ func TestPinEntry(t *testing.T) {
 		t.Skip("normally don't test this because it requires feedback from the user")
 	}
 
-	response, err := keeper.PinEntry(
+	response, err := keeper.GetPassword(
 		"Title",
 		"Description: If this looks good, type OK",
 		"Prompt",

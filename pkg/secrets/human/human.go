@@ -91,7 +91,7 @@ func (h *Human) GetSecret(_ context.Context, id string) (secrets.Secret, error) 
 			secrets.WithID(id),
 			secrets.WithLastModified(time.Now()))
 		for _, fld := range def.flds {
-			v, err := keeper.PinEntry(
+			v, err := keeper.GetPassword(
 				"Enter "+fld,
 				"Asking for "+fld+" for "+id,
 				title.String(fld),

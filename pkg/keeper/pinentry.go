@@ -1,25 +1,45 @@
 package keeper
 
-import "github.com/gopasspw/pinentry"
+import (
+	"fmt"
+	"os"
 
-// PinEntry is a tool that makes it easier to display a dialog prompting the
+	"github.com/ncruces/zenity"
+	"golang.org/x/term"
+)
+
+// GetPassword is a tool that makes it easier to display a dialog prompting the
 // user for a password.
-func PinEntry(title, desc, prompt, ok string) (string, error) {
-	pi, err := pinentry.New()
+func GetPassword(title, desc, prompt, ok string) (string, error) {
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		return getTermPassword(title, desc, prompt, ok)
+	}
+
+	return getGUIPassword(title, desc, prompt, ok)
+}
+
+func getGUIPassword(title, desc, prompt, ok string) (string, error) {
+	_, x, err := zenity.Password(
+		zenity.Title(title),
+		zenity.EntryText(desc+"\n\n"+prompt),
+		zenity.OKLabel(ok),
+	)
+
 	if err != nil {
 		return "", err
 	}
 
-	defer pi.Close()
+	return x, nil
+}
 
-	_ = pi.Set("title", title)
-	_ = pi.Set("desc", desc)
-	_ = pi.Set("prompt", prompt)
-	_ = pi.Set("ok", ok)
-	x, err := pi.GetPin()
+func getTermPassword(title, desc, prompt, ok string) (string, error) {
+	fmt.Print(prompt + ": ")
+	x, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {
 		return "", err
 	}
+
+	fmt.Print("\n")
 
 	return string(x), nil
 }

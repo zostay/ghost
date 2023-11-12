@@ -3,8 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"github.com/zostay/ghost/pkg/config"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"log"
 	"net"
 	"os"
@@ -13,6 +11,10 @@ import (
 	"strconv"
 	"syscall"
 	"time"
+
+	"google.golang.org/protobuf/types/known/emptypb"
+
+	"github.com/zostay/ghost/pkg/config"
 
 	"google.golang.org/grpc"
 
@@ -36,6 +38,11 @@ func StartServer(
 	enforcementPeriod time.Duration,
 	enforcedPolicies []string,
 ) error {
+	ss, err := CheckServer()
+	if err == nil {
+		return fmt.Errorf("server already running with pid %d", ss.Pid)
+	}
+
 	sockName := http.MakeHttpServerSocketName()
 	sock, err := net.Listen("unix", sockName)
 	if err != nil {

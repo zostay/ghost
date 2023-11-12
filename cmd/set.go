@@ -130,7 +130,7 @@ func RunSet(cmd *cobra.Command, args []string) {
 		sec = secrets.SetPassword(sec, password)
 	}
 	if prompt {
-		pw, err := keeper.PinEntry(sec.Name(), "Password", "Please enter the new password", "Set Password")
+		pw, err := keeper.GetPassword(sec.Name(), "Password", "Please enter the new password", "Set Password")
 		if err != nil {
 			s.Logger.Panicf("Unable to prompt for password: %v", err)
 		}
