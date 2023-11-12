@@ -7,14 +7,14 @@ import (
 	"github.com/zostay/ghost/pkg/plugin"
 )
 
-var KeepersCmd = &cobra.Command{
-	Use:   "keepers",
-	Short: "List secret keeper configurations",
+var PluginsCmd = &cobra.Command{
+	Use:   "plugins",
+	Short: "List secret keeper plugin types",
 	Args:  cobra.NoArgs,
-	Run:   RunListKeepers,
+	Run:   RunListPlugins,
 }
 
-func RunListKeepers(cmd *cobra.Command, args []string) {
+func RunListPlugins(cmd *cobra.Command, args []string) {
 	for _, kt := range plugin.List() {
 		s.Printer.Print(kt)
 	}

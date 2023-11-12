@@ -124,6 +124,17 @@ func Decode(ctx context.Context, name string) (any, error) {
 	return builder.Decode(name)
 }
 
+// DecodePartial works the same as Decode, but does not resolve secret
+// references.
+func DecodePartial(ctx context.Context, name string) (any, error) {
+	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)
+	if !isBuilder {
+		panic("unable to find the secret keeper factory in context")
+	}
+
+	return builder.DecodePartial(name)
+}
+
 func mpDecode(kc any, cfg any) error {
 	mpConf := &mapstructure.DecoderConfig{
 		DecodeHook: mapstructure.StringToTimeDurationHookFunc(),
@@ -147,6 +158,28 @@ func (mb *builderContext) Decode(name string) (any, error) {
 	}
 
 	kc, err = mb.resolveSecretRefsInKeeperConfig(kc, true)
+	if err != nil {
+		return nil, err
+	}
+
+	cfg := reflect.New(typBuilder.Config).Interface()
+	err = mpDecode(kc, cfg)
+	if err != nil {
+		return nil, fmt.Errorf("unable to structure configuration for %q: %w", name, err)
+	}
+
+	return cfg, nil
+}
+
+// DecodePartial works the same as Decode, but does not resolve secret
+// references.
+func (mb *builderContext) DecodePartial(name string) (any, error) {
+	kc, typBuilder, err := mb.configAndBuilder(name)
+	if err != nil {
+		return nil, err
+	}
+
+	kc, err = mb.resolveSecretRefsInKeeperConfig(kc, false)
 	if err != nil {
 		return nil, err
 	}

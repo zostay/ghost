@@ -1,3 +1,9 @@
+WIP  TBD
+
+ * Rename `ghost list keepers` to `ghost list plugins`.
+ * Added a few additional tests.
+ * Fix: The `ghost config list` and `ghost config get` commands failed when secret references failed to fully resolve because they depende upon the secret service or something. Now, it may not list  complete configuration, but shouldn't fail or cause a password propmt just to call these sub-commands.
+
 v0.3.0  2023-10-23
 
  * Add and implement the `GetServiceInfo` endpoint to the gRPC keeper service interface.

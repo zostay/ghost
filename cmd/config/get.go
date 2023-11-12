@@ -53,7 +53,7 @@ func PrintKeeper(
 ) {
 	// TODO this should be rolled into plugin configuration too
 	indent := makeIndent(i)
-	dc, err := keeper.Decode(ctx, keeperName)
+	dc, err := keeper.DecodePartial(ctx, keeperName)
 	if err != nil {
 		s.Printer.Panicf("failed to decode configuration for keeper %q: %v", keeperName, err)
 	}

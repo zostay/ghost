@@ -13,7 +13,7 @@ var listCmd = &cobra.Command{
 
 func init() {
 	listCmd.AddCommand(
-		list.KeepersCmd,
+		list.PluginsCmd,
 		list.LocationsCmd,
 		list.SecretsCmd,
 	)
