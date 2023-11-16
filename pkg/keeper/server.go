@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -139,52 +140,130 @@ func StopServer(immediacy StopImmediacy) error {
 }
 
 type ServiceStatus struct {
-	Pid               int           // the PID of the service
+	*os.Process                     // the Process object for the service
+	Pid               int           // the expected PID of the service
 	Keeper            string        // the keeper the service is serving
 	EnforcementPeriod time.Duration // the enforcement period
 	EnforcedPolicies  []string      // the policies being enforced
 }
 
+var (
+	ErrNoPidFile           = fmt.Errorf("unable to locate pid file")
+	ErrUnreadablePidFile   = fmt.Errorf("unable to read pid file")
+	ErrNoProcess           = fmt.Errorf("unable to find process for pid")
+	ErrProcessVerification = fmt.Errorf("unable to verify process for pid")
+	ErrGRPCClient          = fmt.Errorf("unable to build gRPC client")
+	ErrServiceError        = fmt.Errorf("service returned error when queried")
+)
+
 // CheckServer checks if the server is alive and returns a little status
 // structure to describe it. Returns an error if it is not.
 func CheckServer() (*ServiceStatus, error) {
+	ss := ServiceStatus{}
 	pidFile := makeRunName()
 	pidBytes, err := os.ReadFile(pidFile)
 	if err != nil {
-		return nil, fmt.Errorf("unable to locate pid file %q: %w", pidFile, err)
+		return &ss, fmt.Errorf("%w %q: %w", ErrNoPidFile, pidFile, err)
 	}
 
 	pid, err := strconv.Atoi(string(pidBytes))
 	if err != nil {
-		return nil, fmt.Errorf("unable to read pid file %q: %w", pidFile, err)
+		return &ss, fmt.Errorf("%w %q: %w", ErrUnreadablePidFile, pidFile, err)
 	}
+
+	ss.Pid = pid
 
 	p, err := os.FindProcess(pid)
 	if err != nil {
-		return nil, fmt.Errorf("unable to find process for pid %d: %w", pid, err)
+		return &ss, fmt.Errorf("%w %d: %w", ErrNoProcess, pid, err)
 	}
+
+	ss.Process = p
 
 	err = p.Signal(syscall.Signal(0))
 	if err != nil {
-		return nil, fmt.Errorf("unable to verify process for pid %d: %w", pid, err)
+		return &ss, fmt.Errorf("%w %d: %w", ErrProcessVerification, pid, err)
 	}
 
 	c := config.Instance()
 	ctx := WithBuilder(context.Background(), c)
 	client, err := http.BuildServiceClient(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("unable to build gRPC client: %w", err)
+		return &ss, fmt.Errorf("%w: %w", ErrGRPCClient, err)
 	}
 
 	info, err := client.GetServiceInfo(ctx, &emptypb.Empty{})
 	if err != nil {
-		return nil, fmt.Errorf("service returned error when queried: %w", err)
+		return &ss, fmt.Errorf("%w: %w", ErrServiceError, err)
 	}
 
-	return &ServiceStatus{
-		Pid:               pid,
-		Keeper:            info.GetKeeper(),
-		EnforcementPeriod: info.GetEnforcementPeriod().AsDuration(),
-		EnforcedPolicies:  info.GetEnforcedPolicies(),
-	}, nil
+	ss.Keeper = info.GetKeeper()
+	ss.EnforcementPeriod = info.GetEnforcementPeriod().AsDuration()
+	ss.EnforcedPolicies = info.GetEnforcedPolicies()
+
+	return &ss, nil
+}
+
+// RecoverService performs the work to clean up the system to make it possible to
+// restart after a crash.
+func RecoverService() error {
+	ss, err := CheckServer()
+	if err == nil {
+		// server is running OK, nothing to do
+		return nil
+	}
+
+	killFiles := func(silent bool) error {
+		if err := os.Remove(makeRunName()); err != nil {
+			if !silent {
+				return fmt.Errorf("failed to remove run file: %w", err)
+			}
+		}
+
+		if err := os.Remove(http.MakeHttpServerSocketName()); err != nil {
+			if !silent {
+				return fmt.Errorf("failed to remove sock file: %w", err)
+			}
+		}
+
+		return nil
+	}
+
+	killProcess := func() error {
+		if err := ss.Kill(); err != nil {
+			// already dead is fine by us
+			if !errors.Is(err, os.ErrProcessDone) {
+				return fmt.Errorf("failed to kill process %d: %w", ss.Process.Pid, err)
+			}
+		}
+
+		if err := killFiles(false); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if errors.Is(err, ErrServiceError) ||
+		errors.Is(err, ErrGRPCClient) ||
+		errors.Is(err, ErrProcessVerification) {
+		// The process appears to be in a bad state.
+		// There'll be killins' next. ~~ Hagrid
+		return killProcess()
+	}
+
+	if errors.Is(err, ErrNoPidFile) {
+		// no pid file, this is fine, but try and remove the socket file in case
+		// it's hanging around
+		return killFiles(true)
+	}
+
+	if errors.Is(err, ErrNoProcess) {
+		// process has stopped, delete the pidfile
+		return killFiles(false)
+	}
+
+	// Remaining error (ErrUnreadablePidFile) cannot be autmomatically resolved
+	// in any way.
+	return err
 }

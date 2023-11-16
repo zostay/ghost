@@ -54,10 +54,16 @@ func RunStartService(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	err := keeper.RecoverService()
+	if err != nil {
+		s.Logger.Panicf("Service is in a bad state, cannot start: %v", err)
+		return
+	}
+
 	ctx := keeper.WithBuilder(context.Background(), c)
 	kpr, err := keeper.Build(ctx, keeperService)
 	if err != nil {
-		s.Logger.Panicf("failed to configure master keeper %q: %v", keeperService, err)
+		s.Logger.Panicf("Failed to configure master keeper %q: %v", keeperService, err)
 		return
 	}
 
