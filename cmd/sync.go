@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/spf13/cobra"
 
@@ -34,11 +35,13 @@ several minutes or even hours due to API rate limits.`,
 
 	alsoDelete      bool
 	ignoreDuplicate bool
+	verbose         bool
 )
 
 func init() {
 	syncCmd.Flags().BoolVar(&alsoDelete, "delete", false, "Delete secrets from the destination keeper")
 	syncCmd.Flags().BoolVar(&ignoreDuplicate, "ignore-duplicates", false, "When synchronizing, ignore duplicates (keep latest by last-modified date)")
+	syncCmd.Flags().BoolVar(&verbose, "verbose", false, "Name the secrets being synchronized.")
 }
 
 func RunSync(cmd *cobra.Command, args []string) {
@@ -75,14 +78,19 @@ func RunSync(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = syncer.CopyTo(ctx, toKpr)
+	var verboseLogger *log.Logger
+	if verbose {
+		verboseLogger = s.Logger
+	}
+
+	err = syncer.CopyTo(ctx, toKpr, verboseLogger)
 	if err != nil {
 		s.Logger.Panic(err)
 		return
 	}
 
 	if alsoDelete {
-		err = syncer.DeleteAbsent(ctx, toKpr)
+		err = syncer.DeleteAbsent(ctx, toKpr, verboseLogger)
 		if err != nil {
 			s.Logger.Panic(err)
 			return

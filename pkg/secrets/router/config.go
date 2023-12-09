@@ -76,13 +76,13 @@ func Validator(ctx context.Context, c any) error {
 	errs := plugin.NewValidationError()
 
 	if cfg.DefaultRoute != "" {
-		if keeper.Exists(ctx, cfg.DefaultRoute) {
+		if !keeper.Exists(ctx, cfg.DefaultRoute) {
 			errs.Append(fmt.Errorf("default route keeper %q does not exist", cfg.DefaultRoute))
 		}
 	}
 
 	for _, r := range cfg.Routes {
-		if keeper.Exists(ctx, r.Keeper) {
+		if !keeper.Exists(ctx, r.Keeper) {
 			errs.Append(fmt.Errorf("route keeper %q does not exist", r.Keeper))
 		}
 

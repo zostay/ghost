@@ -2,10 +2,12 @@ WIP  TBD
 
  * Rename `ghost list keepers` to `ghost list plugins`.
  * Added a few additional tests.
+ * Added the `--verbose` flag to `ghost sync`.
  * Fix: A bug in how password worked could result in the password display being stuck on the screen permanently. This has been fixed.
  * Fix: (Experimental) Ghost was using a library for password entry that is no longer maintained. This has been switched to a new input mechanism. This may change again.
  * Fix: The `ghost config list` and `ghost config get` commands failed when secret references failed to fully resolve because they depende upon the secret service or something. Now, it may not list  complete configuration, but shouldn't fail or cause a password propmt just to call these sub-commands.
  * Fix: When `ghost service start` runs, check the service status and perform an appropriate recovery routine to correct errors automatically.
+ * Fix: The router service correctly validates default and routes keepers now.
 
 v0.3.0  2023-10-23
 

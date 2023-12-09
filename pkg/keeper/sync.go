@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/zostay/ghost/pkg/secrets"
@@ -155,7 +156,11 @@ func (s *Sync) AddSecretKeeper(
 
 // CopyTo copies all the secrets that have been added to the Sync object for
 // copying via the Add* methods into the given keeper.
-func (s *Sync) CopyTo(ctx context.Context, to secrets.Keeper) error {
+func (s *Sync) CopyTo(
+	ctx context.Context,
+	to secrets.Keeper,
+	logger *log.Logger,
+) error {
 	for sk, lk := range s.index {
 		secs, err := to.GetSecretsByName(ctx, sk.name)
 		if err != nil {
@@ -177,6 +182,10 @@ func (s *Sync) CopyTo(ctx context.Context, to secrets.Keeper) error {
 		origSec, err := s.gatherer.GetSecret(ctx, lk.id)
 		if err != nil {
 			return err
+		}
+
+		if logger != nil {
+			logger.Printf("Copying %s/%s/%s", sk.location, sk.name, sk.username)
 		}
 
 		secrets.SetName(syncSec, origSec.Name())
@@ -202,7 +211,11 @@ func (s *Sync) CopyTo(ctx context.Context, to secrets.Keeper) error {
 // DeleteAbsent deletes all the secrets in the destination keeper that do not
 // exactly match the ones added to the Sync object via the Add* methods. It
 // matches using name, username, and location.
-func (s *Sync) DeleteAbsent(ctx context.Context, to secrets.Keeper) error {
+func (s *Sync) DeleteAbsent(
+	ctx context.Context,
+	to secrets.Keeper,
+	logger *log.Logger,
+) error {
 	locs, err := to.ListLocations(ctx)
 	if err != nil {
 		return err
@@ -221,6 +234,10 @@ func (s *Sync) DeleteAbsent(ctx context.Context, to secrets.Keeper) error {
 			}
 
 			if _, secExists := s.index[makeKey(sec)]; !secExists {
+				if logger != nil {
+					logger.Printf("Deleting %s/%s/%s", sec.Location(), sec.Name(), sec.Username())
+				}
+
 				if err := to.DeleteSecret(ctx, id); err != nil {
 					return err
 				}
