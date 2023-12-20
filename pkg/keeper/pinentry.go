@@ -32,7 +32,7 @@ func getGUIPassword(title, desc, prompt, ok string) (string, error) {
 	return x, nil
 }
 
-func getTermPassword(title, desc, prompt, ok string) (string, error) {
+func getTermPassword(title, desc, prompt, ok string) (string, error) { //nolint:unparam
 	fmt.Print(prompt + ": ")
 	x, err := term.ReadPassword(int(os.Stdin.Fd()))
 	if err != nil {

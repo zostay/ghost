@@ -10,7 +10,7 @@ import (
 	"github.com/zostay/ghost/pkg/keeper"
 )
 
-func TestPinEntry(t *testing.T) {
+func TestPinEntry(t *testing.T) { //nolint:paralleltest
 	if os.Getenv("GHOST_TEST_INTERACTIVE") == "" {
 		t.Skip("normally don't test this because it requires feedback from the user")
 	}
