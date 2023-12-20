@@ -239,8 +239,23 @@ func (s *Sync) CopyTo(
 			return err
 		}
 
+		action := "Copying"
+
+		// detect whether we are overwriting
+		var overSecs []secrets.Secret
+		if o.overwriteMatching {
+			overSecs, err = to.GetSecretsByName(ctx, sk.name)
+			if err != nil {
+				return err
+			}
+
+			if len(overSecs) > 0 {
+				action = "Overwriting"
+			}
+		}
+
 		if o.logger != nil {
-			o.logger.Printf("Copying %s/%s/%s", sk.location, sk.name, sk.username)
+			o.logger.Printf("%s %s/%s/%s", action, sk.location, sk.name, sk.username)
 		}
 
 		secrets.SetName(syncSec, origSec.Name())
@@ -257,13 +272,8 @@ func (s *Sync) CopyTo(
 
 		// select the secret to overwrite when overwriting
 		if o.overwriteMatching {
-			secs, err := to.GetSecretsByName(ctx, sk.name)
-			if err != nil {
-				return err
-			}
-
 			var best secrets.Secret
-			for _, sec := range secs {
+			for _, sec := range overSecs {
 				if sec.Username() == sk.username && sec.Location() == sk.location {
 					if best == nil || sec.LastModified().After(best.LastModified()) {
 						best = sec
