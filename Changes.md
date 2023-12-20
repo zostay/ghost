@@ -1,5 +1,8 @@
 WIP  TBD
 
+ * Breaking Change: The methods on the `keeper.Sync` object now take options instead of additional parameters.
+ * The sync tool is now able to overwite secrets in the destination keeper when the secret from the source matches the name, username, and location in the destination. This is enabled by the `WithMatchingOverwritten` option.
+ * Added the `--overwrite-matching` option to the `ghost sync` command to enable the above feature when syncing from the command-line.
  * Rename `ghost list keepers` to `ghost list plugins`.
  * Added a few additional tests.
  * Added the `--verbose` flag to `ghost sync`.

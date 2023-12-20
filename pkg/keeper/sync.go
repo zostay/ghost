@@ -76,17 +76,44 @@ func (s *Sync) addToIndex(
 	return nil
 }
 
+type syncOptions struct {
+	ignoreDuplicates  bool
+	logger            *log.Logger
+	overwriteMatching bool
+}
+
+type SyncOption func(*syncOptions)
+
+// WithIgnoredDuplicates causes the AddSecret* method to ignore duplicate secrets
+// that have already been added. If set, the most recent secret will be kept.
+func WithIgnoredDuplicates() SyncOption {
+	return func(o *syncOptions) {
+		o.ignoreDuplicates = true
+	}
+}
+
+func processSyncOptions(opts []SyncOption) *syncOptions {
+	o := &syncOptions{}
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
+}
+
 // AddSecret adds a single secret to the list to be copied. If the secret has
-// already been added, it will return ErrDuplicate unless ignoreDuplicate is set
-// to true. If ignoreDuplicate is set, the more recent secret will be kept.
+// already been added, it will return ErrDuplicate unless WithIgnoredDuplicate is set
+// to true. If WithIgnoredDuplicates is set, the most recent secret will be kept.
+//
+// Valid options for this method include WithIgnoredDuplicates.
 func (s *Sync) AddSecret(
 	ctx context.Context,
 	sec secrets.Secret,
-	ignoreDuplicate bool,
+	opts ...SyncOption,
 ) error {
+	o := processSyncOptions(opts)
 	sk := makeKey(sec)
 	if similar, similarExists := s.index[sk]; !similarExists {
-		if ignoreDuplicate {
+		if o.ignoreDuplicates {
 			if sec.LastModified().After(similar.lastModified) {
 				return s.addToIndex(ctx, sec)
 			}
@@ -101,13 +128,15 @@ func (s *Sync) AddSecret(
 
 // AddLocationSecret adds all the secrets in a given location to the list to be
 // copied. If the location contains secrets with identical name and username,
-// ErrDuplicate will be returned unless ignoreDuplicates is set to true. If
-// ignoreDuplicates is set, the most recent secret will be kept.
+// ErrDuplicate will be returned unless WithIgnoredDuplicates is set to true. If
+// WithIgnoredDuplicates is set, the most recent secret will be kept.
+//
+// Valid options for this method include WithIgnoredDuplicates.
 func (s *Sync) AddLocationSecret(
 	ctx context.Context,
 	from secrets.Keeper,
 	loc string,
-	ignoreDuplicates bool,
+	opts ...SyncOption,
 ) error {
 	ids, err := from.ListSecrets(ctx, loc)
 	if err != nil {
@@ -120,7 +149,7 @@ func (s *Sync) AddLocationSecret(
 			return err
 		}
 
-		if err := s.AddSecret(ctx, sec, ignoreDuplicates); err != nil {
+		if err := s.AddSecret(ctx, sec, opts...); err != nil {
 			return err
 		}
 	}
@@ -132,13 +161,15 @@ func (s *Sync) AddLocationSecret(
 //
 // If the secret keeper contains more than one secret with the same name,
 // username, and location, the ErrDuplicate will be returned, with the Sync
-// object now partially filled. You can set ignoreDuplicates to cause secondary
+// object now partially filled. You can set WithIgnoredDuplicates to cause secondary
 // secrets to be ignored. If set, the most recently modified secret will be
 // kept.
+//
+// Valid options for this method include WithIgnoredDuplicates.
 func (s *Sync) AddSecretKeeper(
 	ctx context.Context,
 	from secrets.Keeper,
-	ignoreDuplicates bool,
+	opts ...SyncOption,
 ) error {
 	fromLocs, err := from.ListLocations(ctx)
 	if err != nil {
@@ -146,7 +177,7 @@ func (s *Sync) AddSecretKeeper(
 	}
 
 	for _, loc := range fromLocs {
-		if err := s.AddLocationSecret(ctx, from, loc, ignoreDuplicates); err != nil {
+		if err := s.AddLocationSecret(ctx, from, loc, opts...); err != nil {
 			return err
 		}
 	}
@@ -154,13 +185,37 @@ func (s *Sync) AddSecretKeeper(
 	return nil
 }
 
+// WithLogger sets the logger to use when copying secrets.
+func WithLogger(logger *log.Logger) SyncOption {
+	return func(o *syncOptions) {
+		o.logger = logger
+	}
+}
+
+// WithMatchingOverwritten causes the CopyTo method to overwrite existing secrets in the
+// destination keeper. The secrets will be overwritten, if the have the same
+// name, username, and location in the destination. If there are multiple secrets
+// with the same name, username, and location in the destination, the most
+// recently modified secret will be overwritten.
+func WithMatchingOverwritten() SyncOption {
+	return func(o *syncOptions) {
+		o.overwriteMatching = true
+	}
+}
+
 // CopyTo copies all the secrets that have been added to the Sync object for
-// copying via the Add* methods into the given keeper.
+// copying via the Add* methods into the given keeper. If a logger is given,
+// this will write a message to that logger each time a secret is copied. If the
+// secret already exists in the destination, it will not be overwritten unless
+// the WithMatchingOverwritten option is set.
+//
+// Valid options for this method include WithLogger and WithMatchingOverwritten.
 func (s *Sync) CopyTo(
 	ctx context.Context,
 	to secrets.Keeper,
-	logger *log.Logger,
+	opts ...SyncOption,
 ) error {
+	o := processSyncOptions(opts)
 	for sk, lk := range s.index {
 		secs, err := to.GetSecretsByName(ctx, sk.name)
 		if err != nil {
@@ -184,8 +239,8 @@ func (s *Sync) CopyTo(
 			return err
 		}
 
-		if logger != nil {
-			logger.Printf("Copying %s/%s/%s", sk.location, sk.name, sk.username)
+		if o.logger != nil {
+			o.logger.Printf("Copying %s/%s/%s", sk.location, sk.name, sk.username)
 		}
 
 		secrets.SetName(syncSec, origSec.Name())
@@ -200,6 +255,27 @@ func (s *Sync) CopyTo(
 			secrets.SetField(syncSec, fldName, fldVal)
 		}
 
+		// select the secret to overwrite when overwriting
+		if o.overwriteMatching {
+			secs, err := to.GetSecretsByName(ctx, sk.name)
+			if err != nil {
+				return err
+			}
+
+			var best secrets.Secret
+			for _, sec := range secs {
+				if sec.Username() == sk.username && sec.Location() == sk.location {
+					if best == nil || sec.LastModified().After(best.LastModified()) {
+						best = sec
+					}
+				}
+			}
+
+			if best != nil {
+				syncSec = secrets.NewSingleFromSecret(best, secrets.WithID(best.ID()))
+			}
+		}
+
 		if _, err := to.SetSecret(ctx, syncSec); err != nil {
 			return err
 		}
@@ -211,11 +287,17 @@ func (s *Sync) CopyTo(
 // DeleteAbsent deletes all the secrets in the destination keeper that do not
 // exactly match the ones added to the Sync object via the Add* methods. It
 // matches using name, username, and location.
+//
+// If a logger is given, this will write a message to that logger each time a
+// secret is deleted.
+//
+// Valid options for this method include WithLogger.
 func (s *Sync) DeleteAbsent(
 	ctx context.Context,
 	to secrets.Keeper,
-	logger *log.Logger,
+	opts ...SyncOption,
 ) error {
+	o := processSyncOptions(opts)
 	locs, err := to.ListLocations(ctx)
 	if err != nil {
 		return err
@@ -234,8 +316,8 @@ func (s *Sync) DeleteAbsent(
 			}
 
 			if _, secExists := s.index[makeKey(sec)]; !secExists {
-				if logger != nil {
-					logger.Printf("Deleting %s/%s/%s", sec.Location(), sec.Name(), sec.Username())
+				if o.logger != nil {
+					o.logger.Printf("Deleting %s/%s/%s", sec.Location(), sec.Name(), sec.Username())
 				}
 
 				if err := to.DeleteSecret(ctx, id); err != nil {

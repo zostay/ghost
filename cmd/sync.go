@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/spf13/cobra"
 
@@ -33,15 +32,17 @@ several minutes or even hours due to API rate limits.`,
 		Run:  RunSync,
 	}
 
-	alsoDelete      bool
-	ignoreDuplicate bool
-	verbose         bool
+	alsoDelete        bool
+	ignoreDuplicate   bool
+	overwriteMatching bool
+	verbose           bool
 )
 
 func init() {
 	syncCmd.Flags().BoolVar(&alsoDelete, "delete", false, "Delete secrets from the destination keeper")
 	syncCmd.Flags().BoolVar(&ignoreDuplicate, "ignore-duplicates", false, "When synchronizing, ignore duplicates (keep latest by last-modified date)")
 	syncCmd.Flags().BoolVar(&verbose, "verbose", false, "Name the secrets being synchronized.")
+	syncCmd.Flags().BoolVar(&overwriteMatching, "overwrite-matching", false, "When synchronizing, overwrite secrets in the destination that match the source (by name, username, and location).")
 }
 
 func RunSync(cmd *cobra.Command, args []string) {
@@ -68,7 +69,12 @@ func RunSync(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err = syncer.AddSecretKeeper(ctx, fromKpr, ignoreDuplicate)
+	var addOpts = make([]keeper.SyncOption, 0, 1)
+	if ignoreDuplicate {
+		addOpts = append(addOpts, keeper.WithIgnoredDuplicates())
+	}
+
+	err = syncer.AddSecretKeeper(ctx, fromKpr, addOpts...)
 	if err != nil {
 		if errors.Is(err, keeper.ErrDuplicate) {
 			s.Logger.Panic("The source secret keeper contains secrets with duplicate name, username, and location. Either de-duplicate or use --ignore-duplicates.")
@@ -78,19 +84,27 @@ func RunSync(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	var verboseLogger *log.Logger
+	var (
+		copyOpts = make([]keeper.SyncOption, 0, 2)
+		delOpts  = make([]keeper.SyncOption, 0, 2)
+	)
 	if verbose {
-		verboseLogger = s.Logger
+		copyOpts = append(copyOpts, keeper.WithLogger(s.Logger))
+		delOpts = append(delOpts, keeper.WithLogger(s.Logger))
 	}
 
-	err = syncer.CopyTo(ctx, toKpr, verboseLogger)
+	if overwriteMatching {
+		copyOpts = append(copyOpts, keeper.WithMatchingOverwritten())
+	}
+
+	err = syncer.CopyTo(ctx, toKpr, copyOpts...)
 	if err != nil {
 		s.Logger.Panic(err)
 		return
 	}
 
 	if alsoDelete {
-		err = syncer.DeleteAbsent(ctx, toKpr, verboseLogger)
+		err = syncer.DeleteAbsent(ctx, toKpr, delOpts...)
 		if err != nil {
 			s.Logger.Panic(err)
 			return
