@@ -1,4 +1,4 @@
-WIP  TBD
+v0.4.0  2023-12-20
 
  * Breaking Change: The methods on the `keeper.Sync` object now take options instead of additional parameters.
  * The sync tool is now able to overwrite secrets in the destination keeper when the secret from the source matches the name, username, and location in the destination. This is enabled by the `WithMatchingOverwritten` option.
