@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	getCmd.Flags().StringVar(&keeperName, "keeper", "", "The name of the secret keeper to use")
+	setCmd.Flags().StringVar(&keeperName, "keeper", "", "The name of the secret keeper to use")
 	setCmd.Flags().StringVar(&id, "id", "", "The ID of an existing secret to update")
 	setCmd.Flags().StringVar(&name, "name", "", "The new name to set")
 	setCmd.Flags().StringVar(&username, "username", "", "The new username to set")
