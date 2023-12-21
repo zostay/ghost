@@ -1,4 +1,4 @@
-WIP  TBD
+v0.4.2  2023-12-20
 
  * Fix: Previously released CLI was non-functional.
 
