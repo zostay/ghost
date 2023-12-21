@@ -1,3 +1,7 @@
+WIP  TBD
+
+ * Add the `--keeper` option to `ghost set`.
+
 v0.4.0  2023-12-20
 
  * Breaking Change: The methods on the `keeper.Sync` object now take options instead of additional parameters.
