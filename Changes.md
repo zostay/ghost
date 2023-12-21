@@ -1,3 +1,7 @@
+WIP  TBD
+
+ * Fix: Previously released CLI was non-functional.
+
 v0.4.1  2023-12-20
 
  * Add the `--keeper` option to `ghost set`.
