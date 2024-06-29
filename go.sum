@@ -108,8 +108,8 @@ github.com/zalando/go-keyring v0.2.3 h1:v9CUu9phlABObO4LPWycf+zwMG7nlbb3t/B5wa97
 github.com/zalando/go-keyring v0.2.3/go.mod h1:HL4k+OXQfJUWaMnqyuSOc0drfGPX2b51Du6K+MRgZMk=
 github.com/zostay/fssafe v0.1.1 h1:Budf5G8EB5eXfczEFF3wStDoOjtf5iHyMzr6JuNfzzk=
 github.com/zostay/fssafe v0.1.1/go.mod h1:t1eyuWidE0U663vjd6uFXZvX9hYRhMX5g6ax6YId/Mg=
-github.com/zostay/go-std v0.6.0 h1:rfkkeFaHPVBd6lzSvc3qFOz0XdJwUWcvzIv/tHpGSww=
-github.com/zostay/go-std v0.6.0/go.mod h1:zfgtTG41xevg3HwnHtqDMBafm6tuQ4FNNMf5CKHH7b4=
+github.com/zostay/go-std v0.8.0 h1:OR9h8eGkEBSCn5TsYjtb4gC/A8V2jndgdV9iI0KwWFo=
+github.com/zostay/go-std v0.8.0/go.mod h1:ix2L9dtfn2E4GIJnXTcw8MKd7nwiDzJHln7+/3L7XAE=
 go.uber.org/goleak v1.2.1 h1:NBol2c7O1ZokfZ0LEU9K6Whx/KnwvepVetCUhtKja4A=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550/go.mod h1:yigFU9vqHzYiE8UmvKecakEJjdnWj3jj499lnFckfCI=
