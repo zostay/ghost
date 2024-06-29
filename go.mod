@@ -16,7 +16,7 @@ require (
 	github.com/tobischo/gokeepasslib/v3 v3.5.1
 	github.com/zalando/go-keyring v0.2.3
 	github.com/zostay/fssafe v0.1.1
-	github.com/zostay/go-std v0.6.0
+	github.com/zostay/go-std v0.8.0
 	golang.org/x/term v0.18.0
 	golang.org/x/text v0.14.0
 	google.golang.org/grpc v1.64.0
