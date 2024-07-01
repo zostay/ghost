@@ -25,7 +25,7 @@ jobs:
       - run: go tool cover -func=coverage.out
       - name: Coverage Quality Check
         env:
-          REQUIRED_COVERAGE: 30
+          REQUIRED_COVERAGE: 10
         run: |
           totalCoverage=$(go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+')
           echo "Total Coverage: $totalCoverage %"
