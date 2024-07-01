@@ -16,7 +16,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
 	github.com/tobischo/gokeepasslib/v3 v3.6.0
-	github.com/zalando/go-keyring v0.2.3
+	github.com/zalando/go-keyring v0.2.5
 	github.com/zostay/fssafe v0.1.1
 	github.com/zostay/go-std v0.8.0
 	golang.org/x/term v0.19.0
