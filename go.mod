@@ -1,6 +1,8 @@
 module github.com/zostay/ghost
 
-go 1.19
+go 1.22.0
+
+toolchain go1.22.4
 
 require (
 	github.com/ansd/lastpass-go v0.4.0

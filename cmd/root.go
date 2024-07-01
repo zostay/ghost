@@ -27,6 +27,7 @@ func init() {
 		serviceCmd,
 		setCmd,
 		syncCmd,
+		versionCmd,
 	)
 
 	RootCmd.PersistentFlags().StringVarP(&s.ConfigFile, "config", "c", "", "path to the ghost configuration file")

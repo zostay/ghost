@@ -1,12 +1,16 @@
-v0.4.2  2023-12-20
+## WIP  TBD
+
+ * Adding the `version` sub-command to `ghost`.
+
+## v0.4.2  2023-12-20
 
  * Fix: Previously released CLI was non-functional.
 
-v0.4.1  2023-12-20
+## v0.4.1  2023-12-20
 
  * Add the `--keeper` option to `ghost set`.
 
-v0.4.0  2023-12-20
+## v0.4.0  2023-12-20
 
  * Breaking Change: The methods on the `keeper.Sync` object now take options instead of additional parameters.
  * The sync tool is now able to overwrite secrets in the destination keeper when the secret from the source matches the name, username, and location in the destination. This is enabled by the `WithMatchingOverwritten` option.
@@ -20,39 +24,39 @@ v0.4.0  2023-12-20
  * Fix: When `ghost service start` runs, check the service status and perform an appropriate recovery routine to correct errors automatically.
  * Fix: The router service correctly validates default and routes keepers now.
 
-v0.3.0  2023-10-23
+## v0.3.0  2023-10-23
 
  * Add and implement the `GetServiceInfo` endpoint to the gRPC keeper service interface.
  * Add the `ghost service status` command to query the status of the gRPC keeper service, report it's PID, and report the keeper served and the policy enforcement configuration.
 
-v0.2.0  2023-09-04
+## v0.2.0  2023-09-04
 
  * Rewrite the `ghost sync` command to use name, username, and location as the index key.
  * Add the `keeper.Sync` object to help with copying between between keepers with `AddSecret`, `AddLocationSecret`, `AddSecretKeeper`, `CopyTo`, and `DeleteAbsent` methods and the `NewSync` constructor. This provides the implementation for the rewritten `ghost sync` command.
  * Add retries with automatic back-off to the LastPass secret keeper using the same back-off strategy that lastpass-cli uses.
  * Fix: Use "UserName" as the field for the `Username` field in Keepass (previously, "Username" was incorrectly used).
 
-v0.1.0  2023-08-31
+## v0.1.0  2023-08-31
 
  * Add a `keeper.CheckServer()` function for checking to see if the keeper service is currently running.
 
-v0.0.6  2023-08-30
+## v0.0.6  2023-08-30
 
  * Fix: The secret printing function had ambiguous field display logic which has been corrected.
 
-v0.0.5  2023-08-30
+## v0.0.5  2023-08-30
 
  * Fix: Empty last modified time in Keepass will not panic anymore.
 
-v0.0.4  2023-08-30
+## v0.0.4  2023-08-30
 
  * Fix: When secrets are printed by `ghost` commands, hide empty fields and do not panic on empty URL.
 
-v0.0.3  2023-08-30
+## v0.0.3  2023-08-30
 
  * Fix: The `ghost set` handling of `--id` and `--name` has been fixed.
 
-v0.0.2  2023-08-29
+## v0.0.2  2023-08-29
 
  * Fix: Implemented handling of duration decoding in keeper configuration.
  * Fix: Correct problems with looking up keeper configuration during startup.
@@ -63,7 +67,7 @@ v0.0.2  2023-08-29
  * Fix: All output was previously going to stderr, when some output needed to be sent to stdout instead. Stdout is now used correctly in several cases.
  * Fix: Correct bugs that prevented the caching keeper from working. Added tests.
 
-v0.0.1  2023-08-28
+## v0.0.1  2023-08-28
 
  * Initial release.
  * Provides the `config delete` sub-command.
