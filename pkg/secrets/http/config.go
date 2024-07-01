@@ -25,9 +25,9 @@ const (
 type Config struct{}
 
 // BuildServiceClient builds the gRPC client for the HTTP secrets keeper.
-func BuildServiceClient(ctx context.Context) (KeeperClient, error) {
+func BuildServiceClient() (KeeperClient, error) {
 	sockName := MakeHttpServerSocketName()
-	clientConn, err := grpc.DialContext(ctx, "unix:"+sockName,
+	clientConn, err := grpc.NewClient("unix:"+sockName,
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
@@ -37,13 +37,13 @@ func BuildServiceClient(ctx context.Context) (KeeperClient, error) {
 }
 
 // Builder is the builder function for the HTTP secrets keeper.
-func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
+func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	_, isGrpc := c.(*Config)
 	if !isGrpc {
 		return nil, plugin.ErrConfig
 	}
 
-	client, err := BuildServiceClient(ctx)
+	client, err := BuildServiceClient()
 	if err != nil {
 		return nil, err
 	}

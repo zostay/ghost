@@ -187,7 +187,7 @@ func CheckServer() (*ServiceStatus, error) {
 
 	c := config.Instance()
 	ctx := WithBuilder(context.Background(), c)
-	client, err := http.BuildServiceClient(ctx)
+	client, err := http.BuildServiceClient()
 	if err != nil {
 		return &ss, fmt.Errorf("%w: %w", ErrGRPCClient, err)
 	}
