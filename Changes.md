@@ -1,4 +1,4 @@
-## WIP  TBD
+## v0.5.0  2024-06-30
 
  * Adding the `version` sub-command to `ghost`.
 
