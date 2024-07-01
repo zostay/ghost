@@ -10,7 +10,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/ncruces/zenity v0.10.10
+	github.com/ncruces/zenity v0.10.12
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
@@ -40,7 +40,7 @@ require (
 	github.com/randall77/makefat v0.0.0-20210315173500-7ddd0e42c844 // indirect
 	github.com/tobischo/argon2 v0.1.0 // indirect
 	golang.org/x/crypto v0.22.0 // indirect
-	golang.org/x/image v0.10.0 // indirect
+	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/net v0.22.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240318140521-94a12d6c2237 // indirect
