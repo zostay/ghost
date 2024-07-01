@@ -20,7 +20,7 @@ require (
 	github.com/zostay/fssafe v0.1.1
 	github.com/zostay/go-std v0.8.0
 	golang.org/x/term v0.19.0
-	golang.org/x/text v0.14.0
+	golang.org/x/text v0.16.0
 	google.golang.org/grpc v1.64.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
