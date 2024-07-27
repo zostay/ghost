@@ -19,7 +19,7 @@ require (
 	github.com/zalando/go-keyring v0.2.5
 	github.com/zostay/fssafe v0.1.1
 	github.com/zostay/go-std v0.8.0
-	golang.org/x/term v0.20.0
+	golang.org/x/term v0.22.0
 	golang.org/x/text v0.16.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
