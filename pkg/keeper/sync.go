@@ -111,6 +111,10 @@ func (s *Sync) AddSecret(
 	opts ...SyncOption,
 ) error {
 	o := processSyncOptions(opts)
+	if o.logger != nil {
+		o.logger.Printf("Preparing to sync %s/%s/%s", sec.Location(), sec.Name(), sec.Username())
+	}
+
 	sk := makeKey(sec)
 	if similar, similarExists := s.index[sk]; !similarExists {
 		if o.ignoreDuplicates {
@@ -138,6 +142,11 @@ func (s *Sync) AddLocationSecret(
 	loc string,
 	opts ...SyncOption,
 ) error {
+	o := processSyncOptions(opts)
+	if o.logger != nil {
+		o.logger.Printf("Preparing to sync location %s", loc)
+	}
+
 	ids, err := from.ListSecrets(ctx, loc)
 	if err != nil {
 		return err

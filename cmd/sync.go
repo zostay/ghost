@@ -77,6 +77,9 @@ func RunSync(_ *cobra.Command, args []string) {
 	if ignoreDuplicate {
 		addOpts = append(addOpts, keeper.WithIgnoredDuplicates())
 	}
+	if verbose {
+		addOpts = append(addOpts, keeper.WithLogger(s.Logger))
+	}
 
 	err = syncer.AddSecretKeeper(ctx, fromKpr, addOpts...)
 	if err != nil {
