@@ -2,6 +2,8 @@
 
 > *CAUTION:* This is alpha quality software that I use personally. Personally, I trust many of the secure storage systems that this software talks to, however, I do not fully trust this software myself. My intended purpose is personal and for situation, on local machines at which I am personally present, where commands are run directly or nearly directly at my request. I want to build secure software, but no special vetting or SDLC or other kinds of guarantees have been implemented. I make no warranties, guarantees, or promises regarding the security of this software (see LICENSE for full disclaimer).
 
+> *CAUTION:* The state of LastPass in this library is pretty iffy. LastPass throttles their service so that it has become unusable for me and the Go library this uses to talk to LastPass appears to have been abandoned. It should be possible to use the CLI or do some CGO work to fix this, but I do not have time and have grown to dislike LastPass for most uses, so I'm not very motivated right now.
+
 This is a secret toolkit written in Go. I use it to backup my online password vault locally and to provide tooling to allow my scripts and such to retrieve secrets without having to store such things in environment files or other ways that make me nervous.
 
 I only use this on local machines that only I have access. I cannot vouch for the safety of transport or security of storage of any aspect of this system. As per the terms of the license, you use this software entirely at your own risk. I make no guarantees or warranties regarding the security or safety of this system.
