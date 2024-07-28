@@ -9,6 +9,7 @@ require (
 	github.com/ansd/lastpass-go v0.4.0
 	github.com/gobwas/glob v0.2.3
 	github.com/golang/protobuf v1.5.4
+	github.com/google/uuid v1.6.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ncruces/zenity v0.10.13
