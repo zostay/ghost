@@ -45,7 +45,7 @@ func init() {
 	syncCmd.Flags().BoolVar(&overwriteMatching, "overwrite-matching", false, "When synchronizing, overwrite secrets in the destination that match the source (by name, username, and location).")
 }
 
-func RunSync(cmd *cobra.Command, args []string) {
+func RunSync(_ *cobra.Command, args []string) {
 	fromKeeper := args[0]
 	toKeeper := args[1]
 
@@ -63,6 +63,10 @@ func RunSync(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	if verbose {
+		s.Logger.Printf("Synchronizing secrets from %s to %s\n", fromKeeper, toKeeper)
+	}
+
 	syncer, err := keeper.NewSync()
 	if err != nil {
 		s.Logger.Panic(err)
@@ -72,6 +76,9 @@ func RunSync(cmd *cobra.Command, args []string) {
 	var addOpts = make([]keeper.SyncOption, 0, 1)
 	if ignoreDuplicate {
 		addOpts = append(addOpts, keeper.WithIgnoredDuplicates())
+	}
+	if verbose {
+		addOpts = append(addOpts, keeper.WithLogger(s.Logger))
 	}
 
 	err = syncer.AddSecretKeeper(ctx, fromKpr, addOpts...)
@@ -97,17 +104,37 @@ func RunSync(cmd *cobra.Command, args []string) {
 		copyOpts = append(copyOpts, keeper.WithMatchingOverwritten())
 	}
 
+	if verbose {
+		s.Logger.Println("Starting to copy secrets...")
+	}
+
 	err = syncer.CopyTo(ctx, toKpr, copyOpts...)
 	if err != nil {
 		s.Logger.Panic(err)
 		return
 	}
 
+	if verbose {
+		s.Logger.Println("Copy complete.")
+	}
+
 	if alsoDelete {
+		if verbose {
+			s.Logger.Println("Starting to delete secrets...")
+		}
+
 		err = syncer.DeleteAbsent(ctx, toKpr, delOpts...)
 		if err != nil {
 			s.Logger.Panic(err)
 			return
 		}
+
+		if verbose {
+			s.Logger.Println("Delete complete.")
+		}
+	}
+
+	if verbose {
+		s.Logger.Println("Synchronization complete.")
 	}
 }
