@@ -1,3 +1,7 @@
+## WIP  TBD
+
+ * Adding the `1password` secret keeper.
+
 ## v0.5.0  2024-06-30
 
  * Adding the `version` sub-command to `ghost`.
