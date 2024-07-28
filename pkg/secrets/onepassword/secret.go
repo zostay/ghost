@@ -11,6 +11,11 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
+var hiddenFields = map[string]struct{}{
+	"username": {},
+	"password": {},
+}
+
 type Single struct {
 	item *onepassword.Item
 }
@@ -168,12 +173,20 @@ func (s *Single) SetType(typ string) {}
 func (s *Single) Fields() map[string]string {
 	flds := make(map[string]string, len(s.item.Fields))
 	for _, f := range s.item.Fields {
+		if _, hidden := hiddenFields[f.ID]; hidden {
+			continue
+		}
+
 		flds[f.ID] = f.Value
 	}
 	return flds
 }
 
 func (s *Single) GetField(field string) string {
+	if _, hidden := hiddenFields[field]; hidden {
+		return ""
+	}
+
 	return s.getField(field).Value
 }
 
