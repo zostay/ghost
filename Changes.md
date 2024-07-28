@@ -1,4 +1,4 @@
-## WIP  TBD
+## v0.6.0  2024-07-28
 
  * Adding the `1password` secret keeper.
  * Verbose is more verbose during `ghost sync` now.
