@@ -337,6 +337,7 @@ A **secret keeper** is a configured storage for secrets. The keepers are divided
 
 The following primary secret keeper types are provided:
 
+ * `1password` - The 1Password secret keeper uses the 1Password Connect Server API to access secrets. You will need a 1Password family, business, or enterprise account and some shared vaults. Then you will need to setup a 1Password Connect Server running somewhere.
  * `http` - The http secret keeper accesses secrets provided by the ghost gRPC service. The ghost service can be run with the `ghost service start` command and used to wrap any keeper in the given configuration. As of this writing, the http keeper may only be used on a local machine as all communication is performed over a unix socket.
  * `human` - The human secret keeper provides a means of asking the person at the keyboard to enter a secret. A human keeper is configured with a number of questions, each acting as a secret the user is expected to supply upon request.
  * `keepass` - The Keepass secret keeper loads and stores secrets in a local Keepass database file. You will need to provide the Keepass secret keeper the path to the file as well as the master password for encrypting and decrypting the file.
@@ -356,6 +357,29 @@ The secondary secret keepers exist to provide additional services on top of anot
 Other secret keepers may be added in the future.
 
 # Example Keeper Configuration
+
+## 1password
+
+In order to make use of this secret keeper you will need both a 1Password account that has the ability to create shared vaults. You will need a non-default shared vault setup. And then you will need to configure a 1Password Connect Server. You can find [instructions here](https://developer.1password.com/docs/connect/get-started) from 1Password.
+
+```yaml
+keepers:
+  my-1pass:
+    type: 1password
+    connect_host: http://localhost:8080
+    connect_token: 
+      __SECRET__:
+        keeper: keyring
+        secret: 1password_connect_token
+        field: password
+```
+
+**Type:** `1password`
+
+**Required Fields:**
+
+ * `connect_host` - A URL to the connect host that is hosting your 1Password Connect Service.
+ * `connect_token` - The token you configured for your account when configuring the 1Password Connect service.
 
 ## cache
 
