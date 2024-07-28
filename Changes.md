@@ -1,3 +1,8 @@
+## v0.6.1  2024-07-28
+
+ * Correct binary names on the release page.
+ * Fix other CICD problems related to copy/paste mistakes.
+
 ## v0.6.0  2024-07-28
 
  * Adding the `1password` secret keeper.
