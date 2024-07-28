@@ -52,6 +52,8 @@ linters-settings:
           - github.com/tobischo/gokeepasslib
           - github.com/zalando/go-keyring
           - github.com/zostay
+          - github.com/1Password/connect-sdk-go
+          - github.com/google/uuid
 
       tests:
         files:
