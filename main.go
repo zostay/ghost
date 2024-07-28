@@ -10,6 +10,7 @@ import (
 	_ "github.com/zostay/ghost/pkg/secrets/lastpass"
 	_ "github.com/zostay/ghost/pkg/secrets/low"
 	_ "github.com/zostay/ghost/pkg/secrets/memory"
+	_ "github.com/zostay/ghost/pkg/secrets/onepassword"
 	_ "github.com/zostay/ghost/pkg/secrets/policy"
 	_ "github.com/zostay/ghost/pkg/secrets/router"
 	_ "github.com/zostay/ghost/pkg/secrets/seq"
