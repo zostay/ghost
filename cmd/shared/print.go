@@ -29,7 +29,7 @@ func PrintSecret(sec secrets.Secret, showSecret bool, flds ...string) {
 		}
 		Printer.Printf("  Password: %s", pw)
 	}
-	if (fldSet.Len() == 0 || fldSet.Contains("url")) && sec.Url() != nil {
+	if (fldSet.Len() == 0 || fldSet.Contains("url")) && sec.Url() != nil && sec.Url().String() != "" {
 		Printer.Printf("  URL: %v", sec.Url())
 	}
 	if (fldSet.Len() == 0 || fldSet.Contains("last-modified")) && !sec.LastModified().IsZero() {

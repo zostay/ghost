@@ -31,7 +31,7 @@ const (
 	fldMtime        = "mtime"
 )
 
-// FromKeyringt creates a new Secret from the given keyring entry.
+// FromKeyring creates a new Secret from the given keyring entry.
 func FromKeyring(name string, value string) (*Secret, error) {
 	dec, err := decodeValue(value)
 	if err != nil {
@@ -53,7 +53,7 @@ func FromSecret(secret secrets.Secret) (*Secret, error) {
 	}
 
 	s := &Secret{
-		name:  secret.Name(),
+		name:  secret.Username(),
 		value: val,
 	}
 
@@ -67,19 +67,39 @@ func FromSecret(secret secrets.Secret) (*Secret, error) {
 
 func encodeSecret(secret secrets.Secret) (string, error) {
 	if secret == nil {
-		return "", errors.New("empty secrets not permitted")
+		return "", errors.New("empty secrets not permitted in keyring")
 	}
 
 	if secret.Location() != "" {
-		return "", errors.New("secrets with non-empty locations are not permitted")
+		return "", errors.New("keyring secrets with non-empty locations are not permitted")
 	}
 
-	if secret.ID() != secret.Name() {
-		return "", errors.New("secrets must be stored with matching ID and Name")
+	if secret.Username() == "" {
+		return "", errors.New("keyring secrets require username to be set")
 	}
 
-	if secret.ID() != secret.Username() {
-		return "", errors.New("secrets must be stored with matching ID and Username")
+	if secret.ID() != "" {
+		if secret.ID() != secret.Name() {
+			return "", errors.New("keyring secrets must be stored with matching ID and Name")
+		}
+
+		if secret.ID() != secret.Username() {
+			return "", errors.New("keyring secrets must be stored with matching ID and Username")
+		}
+	} else {
+		secret = secrets.NewSingleFromSecret(secret, secrets.WithID(secret.Username()))
+	}
+
+	if secret.Name() != "" {
+		if secret.Name() != secret.ID() {
+			return "", errors.New("keyring secrets must be stored with matching ID and Name")
+		}
+
+		if secret.Name() != secret.Username() {
+			return "", errors.New("keyring secrets must be stored with matching Name and Username")
+		}
+	} else {
+		secret = secrets.SetName(secret, secret.Username())
 	}
 
 	var mt time.Time
@@ -89,11 +109,17 @@ func encodeSecret(secret secrets.Secret) (string, error) {
 		mt = secret.LastModified()
 	}
 	mtime := strconv.FormatInt(mt.Unix(), 10)
+
+	var surl string
+	if secret.Url() != nil {
+		surl = secret.Url().String()
+	}
+
 	raw := map[string]string{
 		fldPassword: secret.Password(),
 		fldType:     secret.Type(),
 		fldMtime:    mtime,
-		fldUrl:      secret.Url().String(),
+		fldUrl:      surl,
 	}
 	for k, v := range secret.Fields() {
 		raw[fldFieldsPrefix+k] = v

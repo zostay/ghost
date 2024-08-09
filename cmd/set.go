@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	neturl "net/url"
 
 	"github.com/spf13/cobra"
@@ -93,17 +94,18 @@ func RunSet(cmd *cobra.Command, args []string) {
 		s.Logger.Panic(err)
 	}
 
-	secs := []secrets.Secret{}
+	var secs []secrets.Secret
 	if id != "" {
-		sec, err := kpr.GetSecret(ctx, id)
-		if err != nil {
+		var sec secrets.Secret
+		sec, err = kpr.GetSecret(ctx, id)
+		if err != nil && !errors.Is(err, secrets.ErrNotFound) {
 			s.Logger.Panic(err)
+		} else if err == nil {
+			secs = append(secs, sec)
 		}
-
-		secs = append(secs, sec)
 	} else {
 		secs, err = kpr.GetSecretsByName(ctx, name)
-		if err != nil {
+		if err != nil && !errors.Is(err, secrets.ErrNotFound) {
 			s.Logger.Panic(err)
 		}
 	}

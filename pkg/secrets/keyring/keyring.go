@@ -38,6 +38,9 @@ func (k Keyring) ListSecrets(context.Context, string) ([]string, error) {
 func (k Keyring) GetSecretsByName(_ context.Context, name string) ([]secrets.Secret, error) {
 	password, err := keyring.Get(k.serviceName, name)
 	if err != nil {
+		if errors.Is(err, keyring.ErrNotFound) {
+			return nil, secrets.ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -53,6 +56,10 @@ func (k Keyring) GetSecretsByName(_ context.Context, name string) ([]secrets.Sec
 func (k Keyring) GetSecret(_ context.Context, id string) (secrets.Secret, error) {
 	password, err := keyring.Get(k.serviceName, id)
 	if err != nil {
+		if errors.Is(err, keyring.ErrNotFound) {
+			return nil, secrets.ErrNotFound
+		}
+
 		return nil, err
 	}
 
