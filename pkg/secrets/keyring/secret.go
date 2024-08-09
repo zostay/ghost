@@ -31,7 +31,7 @@ const (
 	fldMtime        = "mtime"
 )
 
-// FromKeyringt creates a new Secret from the given keyring entry.
+// FromKeyring creates a new Secret from the given keyring entry.
 func FromKeyring(name string, value string) (*Secret, error) {
 	dec, err := decodeValue(value)
 	if err != nil {

@@ -1,6 +1,8 @@
 ## WIP  2024-08-09
 
  * Fix `keyring` keeper so that not found errors are handled correctly.
+ * When printing a secret, do not show empty `URL:` fields.
+ * Fix a bug that prevented secrets from being created in some circumstances.
 
 ## v0.6.1  2024-07-28
 
