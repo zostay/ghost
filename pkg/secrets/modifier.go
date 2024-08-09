@@ -152,8 +152,8 @@ func (m *modifier) Url() *url.URL {
 }
 
 func (m *modifier) SetUrl(url *url.URL) {
-	if m.base.(SettableUrl) != nil {
-		m.base.(SettableUrl).SetUrl(url)
+	if su, isSu := m.base.(SettableUrl); isSu {
+		su.SetUrl(url)
 		return
 	}
 	m.url = url
