@@ -4,6 +4,7 @@
  * Fixed several other `keyring` keeper issues that prevented it from working correctly.
  * When printing a secret, do not show empty `URL:` fields.
  * Fix a bug that prevented secrets from being created in some circumstances.
+ * Fixed bugs in the secret modifier methods that resulted in panics in situations that shouldn't panic.
 
 ## v0.6.1  2024-07-28
 
