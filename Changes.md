@@ -1,3 +1,7 @@
+## WIP  2024-08-09
+
+ * Fix `keyring` keeper so that not found errors are handled correctly.
+
 ## v0.6.1  2024-07-28
 
  * Correct binary names on the release page.
