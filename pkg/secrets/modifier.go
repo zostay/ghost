@@ -34,8 +34,8 @@ func (m *modifier) Name() string {
 }
 
 func (m *modifier) SetName(name string) {
-	if m.base.(SettableName) != nil {
-		m.base.(SettableName).SetName(name)
+	if sn, isSn := m.base.(SettableName); isSn {
+		sn.SetName(name)
 		return
 	}
 	m.name = &name
@@ -49,8 +49,8 @@ func (m *modifier) Username() string {
 }
 
 func (m *modifier) SetUsername(username string) {
-	if m.base.(SettableUsername) != nil {
-		m.base.(SettableUsername).SetUsername(username)
+	if su, isSu := m.base.(SettableUsername); isSu {
+		su.SetUsername(username)
 		return
 	}
 	m.username = &username
@@ -64,8 +64,8 @@ func (m *modifier) Password() string {
 }
 
 func (m *modifier) SetPassword(secret string) {
-	if m.base.(SettablePassword) != nil {
-		m.base.(SettablePassword).SetPassword(secret)
+	if sp, isSp := m.base.(SettablePassword); isSp {
+		sp.SetPassword(secret)
 		return
 	}
 	m.secret = &secret
@@ -79,8 +79,8 @@ func (m *modifier) Type() string {
 }
 
 func (m *modifier) SetType(typ string) {
-	if m.base.(SettableType) != nil {
-		m.base.(SettableType).SetType(typ)
+	if st, isSt := m.base.(SettableType); isSt {
+		st.SetType(typ)
 		return
 	}
 	m.typ = &typ
@@ -137,8 +137,8 @@ func (m *modifier) LastModified() time.Time {
 }
 
 func (m *modifier) SetLastModified(lastModified time.Time) {
-	if m.base.(SettableLastModified) != nil {
-		m.base.(SettableLastModified).SetLastModified(lastModified)
+	if slm, isSlm := m.base.(SettableLastModified); isSlm {
+		slm.SetLastModified(lastModified)
 		return
 	}
 	m.lastModified = &lastModified
