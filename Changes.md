@@ -1,4 +1,4 @@
-## WIP  2024-08-09
+## v0.6.2  2024-08-09
 
  * Fix `keyring` keeper so that not found errors are handled correctly.
  * Fixed several other `keyring` keeper issues that prevented it from working correctly.
