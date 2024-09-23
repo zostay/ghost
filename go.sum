@@ -120,8 +120,8 @@ github.com/zalando/go-keyring v0.2.5 h1:Bc2HHpjALryKD62ppdEzaFG6VxL6Bc+5v0LYpN8L
 github.com/zalando/go-keyring v0.2.5/go.mod h1:HL4k+OXQfJUWaMnqyuSOc0drfGPX2b51Du6K+MRgZMk=
 github.com/zostay/fssafe v0.1.1 h1:Budf5G8EB5eXfczEFF3wStDoOjtf5iHyMzr6JuNfzzk=
 github.com/zostay/fssafe v0.1.1/go.mod h1:t1eyuWidE0U663vjd6uFXZvX9hYRhMX5g6ax6YId/Mg=
-github.com/zostay/go-std v0.8.0 h1:OR9h8eGkEBSCn5TsYjtb4gC/A8V2jndgdV9iI0KwWFo=
-github.com/zostay/go-std v0.8.0/go.mod h1:ix2L9dtfn2E4GIJnXTcw8MKd7nwiDzJHln7+/3L7XAE=
+github.com/zostay/go-std v0.9.0 h1:srYm/BIaVX6zGCa3VhbKzXWmom6o5/3IIKLaz0ZNcY8=
+github.com/zostay/go-std v0.9.0/go.mod h1:gje2VXBK4+Zga00kQa7V7Oqb9h4gH33U8TIuqaOxL/0=
 go.uber.org/atomic v1.9.0 h1:ECmE8Bn/WFTYwEW/bpKD3M8VtR/zQVbavAoalC1PYyE=
 go.uber.org/atomic v1.9.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
 go.uber.org/goleak v1.3.0 h1:2K3zAYmnTNqV73imy9J1T3WC+gmCePx2hEGkimedGto=
