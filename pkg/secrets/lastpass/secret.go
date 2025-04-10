@@ -82,18 +82,18 @@ func (s *Secret) SetPassword(secret string) {
 
 // Url returns the LastPass account URL.
 func (s *Secret) Url() *url.URL {
-	u, _ := url.Parse(s.Account.URL)
+	u, _ := url.Parse(s.URL)
 	return u
 }
 
 // SetUrl sets the LastPass account URL.
 func (s *Secret) SetUrl(url *url.URL) {
-	s.Account.URL = url.String()
+	s.URL = url.String()
 }
 
 // Location returns the LastPass account Group.
 func (s *Secret) Location() string {
-	return s.Account.Group
+	return s.Group
 }
 
 func (s *Secret) parseNotes() {
@@ -101,10 +101,10 @@ func (s *Secret) parseNotes() {
 		return
 	}
 
-	flds := parseNotes(s.Account.Notes)
+	flds := parseNotes(s.Notes)
 	if flds == nil {
 		s.notes = map[string]string{
-			"Notes": s.Account.Notes,
+			"Notes": s.Notes,
 		}
 	}
 
@@ -152,6 +152,6 @@ func (s *Secret) SetField(name, value string) {
 
 // LastModified returns the LastPass account LastModifiedGMT.
 func (s *Secret) LastModified() time.Time {
-	lmSeconds, _ := strconv.ParseInt(s.Account.LastModifiedGMT, 10, 64)
+	lmSeconds, _ := strconv.ParseInt(s.LastModifiedGMT, 10, 64)
 	return time.Unix(lmSeconds, 0)
 }

@@ -165,8 +165,8 @@ func pick[T any](from []T) T {
 	return from[p.Int64()]
 }
 
-func randomInt(max int) int {
-	p, err := rand.Int(rand.Reader, big.NewInt(int64(max)))
+func randomInt(mx int) int {
+	p, err := rand.Int(rand.Reader, big.NewInt(int64(mx)))
 	if err != nil {
 		s.Logger.Panic(err)
 	}

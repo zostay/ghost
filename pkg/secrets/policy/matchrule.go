@@ -17,10 +17,13 @@ func (mr MatchRule) matchLocationAndAcceptable(loc string) matchStatus {
 		return matchMiss
 	}
 
-	if mr.acceptance == Allow {
+	switch mr.acceptance {
+	case Allow:
 		return matchYes
-	} else if mr.acceptance == InheritAcceptance {
+	case InheritAcceptance:
 		return matchMiss
+	case Deny:
+		return matchNo
 	}
 	return matchNo
 }

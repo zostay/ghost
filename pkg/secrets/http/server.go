@@ -2,10 +2,10 @@ package http
 
 import (
 	"context"
-	"google.golang.org/protobuf/types/known/durationpb"
 	"time"
 
 	"github.com/golang/protobuf/ptypes/empty"
+	"google.golang.org/protobuf/types/known/durationpb"
 
 	"github.com/zostay/ghost/pkg/secrets"
 )

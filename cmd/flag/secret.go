@@ -18,14 +18,14 @@ func (s *Secret) Set(value string) error {
 		return errors.New("secret lookups must be in the form of <keeper>:<secret>:<field-name>")
 	}
 
-	s.SecretRef.KeeperName, s.SecretRef.SecretName, s.SecretRef.Field = parts[0], parts[1], parts[2]
+	s.KeeperName, s.SecretName, s.Field = parts[0], parts[1], parts[2]
 
 	c := config.Instance()
-	if _, hasKeeper := c.Keepers[s.SecretRef.KeeperName]; !hasKeeper {
+	if _, hasKeeper := c.Keepers[s.KeeperName]; !hasKeeper {
 		return fmt.Errorf("secret lookup names keeper %q which does not exist", s.KeeperName)
 	}
 
-	if s.SecretRef.SecretName == "" {
+	if s.SecretName == "" {
 		return fmt.Errorf("empty secret identifier named")
 	}
 
@@ -37,7 +37,7 @@ func (s *Secret) Set(value string) error {
 }
 
 func (s *Secret) String() string {
-	return fmt.Sprintf("%s:%s:%s", s.SecretRef.KeeperName, s.SecretRef.SecretName, s.Field)
+	return fmt.Sprintf("%s:%s:%s", s.KeeperName, s.SecretName, s.Field)
 }
 
 func (s *Secret) Type() string {

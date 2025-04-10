@@ -243,7 +243,7 @@ func (l *LastPass) CopySecret(
 
 	newSec := newSecret(a)
 	newSec.Account.ID = ""
-	newSec.Account.Group = grp
+	newSec.Group = grp
 	return newSec, l.updateAccount(ctx, newSec.Account)
 }
 
@@ -258,6 +258,6 @@ func (l *LastPass) MoveSecret(
 	}
 
 	newSec := newSecret(a)
-	newSec.Account.Group = grp
+	newSec.Group = grp
 	return newSec, l.updateAccount(ctx, newSec.Account)
 }
