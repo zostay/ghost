@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"sort"
 
@@ -17,7 +18,7 @@ import (
 // type.
 var ErrConfig = errors.New("incorrect configuration")
 
-// BuilderFunc is a factory function that should returned a constructed secret
+// BuilderFunc is a factory function that should return a constructed secret
 // keeper object from the given configuration. The BuilderFunc should expect the
 // configuration to be provided as the type defined in the Config field of
 // RegisteredConfig. If it is not that type, it should return ErrConfig.
@@ -31,11 +32,17 @@ type BuilderFunc func(context.Context, any) (secrets.Keeper, error)
 // ValidationError type.
 type ValidatorFunc func(context.Context, any) error
 
+// PrintConfigFunc is a function that should summarize the configuration for the
+// secret keeper to help the user introspect how the configuration has been
+// read and understood. The first argument is the configuration object and the
+// second is the writer to write the summary to.
+type PrintConfigFunc func(any, io.Writer) error
+
 // CmdFunc is a function that gets run via the command-line interface. It is
 // used to configure the secret keeper. The CmdFunc will be editing the
 // configuration for the keeper with the given name. The name is provided in
 // case your configuration command needs to build up the configuration
-// incrementally and so it can lookup the configuration and modify it. The
+// incrementally and so it can look up the configuration and modify it. The
 // fields argument will contain those fields that have been configured via the
 // Fields field of CmdConfig. These will either be a literal string value or a
 // secret reference, which has the form of a map. The CmdFunc should return the
@@ -76,6 +83,7 @@ type RegisteredConfig struct {
 	Config    reflect.Type
 	Builder   BuilderFunc
 	Validator ValidatorFunc
+	Printer   PrintConfigFunc
 	CmdConfig CmdConfig
 }
 
@@ -90,7 +98,7 @@ var configs = map[string]RegisteredConfig{}
 // command.
 //
 // This should be run in an init function in your plugin. Packages containing a
-// secret keeper should be added to main.go for import side-effects. At this
+// secret keeper should be added to main.go for import side effects. At this
 // time, new plugins require a pull request or a fork of the software. Patches welcome.
 //
 // If there's demand for more custom plugins, I could look into a plugin
@@ -100,6 +108,7 @@ func Register(
 	config reflect.Type,
 	builder BuilderFunc,
 	validator ValidatorFunc,
+	printer PrintConfigFunc,
 	cmdConfig CmdConfig,
 ) {
 	if _, ok := configs[name]; ok {
@@ -118,6 +127,7 @@ func Register(
 		Config:    config,
 		Builder:   builder,
 		Validator: validator,
+		Printer:   printer,
 		CmdConfig: cmdConfig,
 	}
 }

@@ -217,6 +217,14 @@ func (r *Router) findSecretMatchingId(
 		}
 	}
 
+	if keeper == nil {
+		return "", nil, nil, fmt.Errorf("unknown keeper ID: %s", keeperId)
+	}
+
+	if locations == nil {
+		return "", nil, nil, fmt.Errorf("unknown locations for keeper ID: %s", keeperId)
+	}
+
 	secret, err := keeper.GetSecret(ctx, secretId)
 	if err != nil {
 		return "", nil, nil, err
@@ -262,7 +270,7 @@ func (r *Router) GetSecretsByName(
 	ctx context.Context,
 	name string,
 ) ([]secrets.Secret, error) {
-	foundSecs := []secrets.Secret{}
+	var foundSecs []secrets.Secret
 	err := r.forEachSecret(ctx,
 		func(secret secrets.Secret) error {
 			if secret.Name() == name {

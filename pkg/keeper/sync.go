@@ -38,7 +38,7 @@ func makeKey(sec secrets.Secret) secretKey {
 // This works by using calls to one or more of the Add* methods to configure the
 // secrets to sync. Then CopyTo can be used to send these secrets to another
 // secret keeper. The DeleteAbsent will delete any secrets in the given secret
-// keeper that have not be added using the Add* methods.
+// keeper that have not been added using the Add* methods.
 type Sync struct {
 	gatherer secrets.Keeper
 	index    map[secretKey]localKey
@@ -202,7 +202,7 @@ func WithLogger(logger *log.Logger) SyncOption {
 }
 
 // WithMatchingOverwritten causes the CopyTo method to overwrite existing secrets in the
-// destination keeper. The secrets will be overwritten, if the have the same
+// destination keeper. The secrets will be overwritten, if they have the same
 // name, username, and location in the destination. If there are multiple secrets
 // with the same name, username, and location in the destination, the most
 // recently modified secret will be overwritten.

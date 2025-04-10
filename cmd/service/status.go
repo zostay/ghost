@@ -14,7 +14,7 @@ var (
 	}
 )
 
-func RunServiceStatus(cmd *cobra.Command, args []string) {
+func RunServiceStatus(_ *cobra.Command, _ []string) {
 	info, err := keeper.CheckServer()
 	if err != nil {
 		s.Logger.Panic(err)

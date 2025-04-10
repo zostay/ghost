@@ -48,17 +48,17 @@ func (s *Seq) ListSecrets(
 	ctx context.Context,
 	location string,
 ) ([]string, error) {
-	secrets := set.New[string]()
+	secSet := set.New[string]()
 	for _, k := range s.keepers {
 		secs, err := k.ListSecrets(ctx, location)
 		if err != nil {
 			return nil, err
 		}
 		for _, sec := range secs {
-			secrets.Insert(sec)
+			secSet.Insert(sec)
 		}
 	}
-	return secrets.Keys(), nil
+	return secSet.Keys(), nil
 }
 
 // GetSecret returns the secret from the first Keeper that returns it.
@@ -84,15 +84,15 @@ func (s *Seq) GetSecretsByName(
 	ctx context.Context,
 	name string,
 ) ([]secrets.Secret, error) {
-	secrets := make([]secrets.Secret, 0, 1)
+	allSecs := make([]secrets.Secret, 0, 1)
 	for _, k := range s.keepers {
 		secs, err := k.GetSecretsByName(ctx, name)
 		if err != nil {
 			return nil, err
 		}
-		secrets = append(secrets, secs...)
+		allSecs = append(allSecs, secs...)
 	}
-	return secrets, nil
+	return allSecs, nil
 }
 
 // SetSecret stores the secret in the first Keeper.

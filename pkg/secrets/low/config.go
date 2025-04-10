@@ -2,6 +2,8 @@ package low
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"os"
 	"reflect"
 
@@ -33,7 +35,18 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 		return nil, err
 	}
 
-	return NewLowSecurity(path), nil
+	return NewSecurity(path), nil
+}
+
+// Print prints the configuration for the low-security secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isLow := c.(*Config)
+	if !isLow {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "path:", cfg.Path)
+	return nil
 }
 
 func init() {
@@ -54,5 +67,5 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, Print, cmd)
 }

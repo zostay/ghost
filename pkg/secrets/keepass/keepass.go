@@ -22,7 +22,7 @@ type Keepass struct {
 var _ secrets.Keeper = &Keepass{}
 
 // NewKeepassNoVerify creates a new Keepass Keeper and returns it. It does not
-// attempt to read the database or verify it is setup correctly.
+// attempt to read the database or verify it is set up correctly.
 func NewKeepassNoVerify(path, master string) (*Keepass, error) {
 	db := keepass.NewDatabase()
 	db.Credentials = keepass.NewPasswordCredentials(master)
@@ -95,7 +95,7 @@ func (k *Keepass) reload() error {
 // qualified path.
 func (k *Keepass) ListLocations(ctx context.Context) ([]string, error) {
 	kw := k.Walker(false)
-	locations := []string{}
+	var locations []string
 	for kw.Next() {
 		select {
 		case <-ctx.Done():
@@ -113,7 +113,7 @@ func (k *Keepass) ListSecrets(
 	folder string,
 ) ([]string, error) {
 	kw := k.Walker(true)
-	secrets := []string{}
+	var secs []string
 	for kw.Next() {
 		select {
 		case <-ctx.Done():
@@ -125,11 +125,11 @@ func (k *Keepass) ListSecrets(
 				continue
 			}
 
-			secrets = append(secrets, makeID(e.UUID))
+			secs = append(secs, makeID(e.UUID))
 		}
 	}
 
-	return secrets, nil
+	return secs, nil
 }
 
 // GetSecret retrieves the identified secret from the Keepass database.
@@ -165,7 +165,7 @@ func (k *Keepass) GetSecretsByName(
 	ctx context.Context,
 	name string,
 ) ([]secrets.Secret, error) {
-	secrets := []secrets.Secret{}
+	var secs []secrets.Secret
 	kw := k.Walker(true)
 	for kw.Next() {
 		select {
@@ -176,12 +176,12 @@ func (k *Keepass) GetSecretsByName(
 			dir := kw.Dir()
 
 			if e.GetTitle() == name {
-				secrets = append(secrets, newSecret(k.db, e, dir))
+				secs = append(secs, newSecret(k.db, e, dir))
 			}
 		}
 	}
 
-	return secrets, nil
+	return secs, nil
 }
 
 // getGroup retrieves the named group or returns nil.
@@ -363,7 +363,7 @@ func (k *Keepass) MoveSecret(
 
 // DeleteSecret removes the secret from the Keepass database.
 func (k *Keepass) DeleteSecret(
-	ctx context.Context,
+	_ context.Context,
 	id string,
 ) error {
 	kw := k.Walker(false)

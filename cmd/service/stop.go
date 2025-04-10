@@ -23,7 +23,7 @@ func init() {
 	StopCmd.Flags().BoolVar(&kill, "kill", false, "send SIGKILL instead of SIGHUP")
 }
 
-func RunStopService(cmd *cobra.Command, args []string) {
+func RunStopService(_ *cobra.Command, _ []string) {
 	quickness := keeper.StopGraceful
 	switch {
 	case kill:

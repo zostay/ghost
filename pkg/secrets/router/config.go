@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"sort"
 	"strings"
@@ -37,6 +38,22 @@ type RouteConfig struct {
 	Keeper string `mapstructure:"keeper" yaml:"keeper"`
 }
 
+// Print prints the configuration for the router secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isRouter := c.(*Config)
+	if !isRouter {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "default route:", cfg.DefaultRoute)
+	fmt.Fprintln(w, "routers:")
+	for _, r := range cfg.Routes {
+		fmt.Fprintln(w, "- locations:", strings.Join(r.Locations, ","))
+		fmt.Fprintln(w, "  keeper:", r.Keeper)
+	}
+	return nil
+}
+
 // Builder constructs a new router secret keeper.
 func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	cfg, isRouter := c.(*Config)
@@ -51,13 +68,13 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 
 	r := NewRouter(defaultKeeper)
 	for _, rt := range cfg.Routes {
-		keeper, err := keeper.Build(ctx, rt.Keeper)
+		kpr, err := keeper.Build(ctx, rt.Keeper)
 		if err != nil {
 			locs := strings.Join(rt.Locations, ",")
 			return nil, fmt.Errorf("unable to build the secret keeper named %q for the route to %q: %w", rt.Keeper, locs, err)
 		}
 
-		err = r.AddKeeper(keeper, rt.Locations...)
+		err = r.AddKeeper(kpr, rt.Locations...)
 		if err != nil {
 			locs := strings.Join(rt.Locations, ",")
 			return nil, fmt.Errorf("unable to add a route for the secret keeper named %q for the route to %q: %w", rt.Keeper, locs, err)
@@ -151,7 +168,7 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, Print, cmd)
 }
 
 // AddRoute adds a route to the router configuration.
@@ -196,7 +213,7 @@ func RemoveLocationsAndRoutes(rc config.KeeperConfig, removeLocations ...string)
 	routes := rc["routes"].([]map[string]any)
 	removeSet := set.New(removeLocations...)
 
-	deleteRoutes := []int{}
+	var deleteRoutes []int
 	for i, r := range routes {
 		locations := r["locations"].([]any)
 		for _, loc := range locations {

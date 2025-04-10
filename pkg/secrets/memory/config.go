@@ -32,5 +32,5 @@ func init() {
 			return config.KeeperConfig{"type": ConfigType}, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, nil, cmd)
 }

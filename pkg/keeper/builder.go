@@ -80,7 +80,7 @@ func Build(ctx context.Context, name string) (secrets.Keeper, error) {
 	return nil, errors.New("unable to find the secret keeper factory in context")
 }
 
-// Validate checks that the configuration int he context is correct for the
+// Validate checks that the configuration in the context is correct for the
 // named secret keeper.
 func Validate(ctx context.Context, name string) error {
 	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)
@@ -109,19 +109,6 @@ func Exists(ctx context.Context, name string) bool {
 	}
 
 	return builder.c.Keepers[name] != nil
-}
-
-// Decode decodes the configuration for the named secret keeper into its
-// preferred configuration type. This is useful for tools that want to
-// manipulate the configuration directly. This will have any secret references
-// resolved and lookups performed.
-func Decode(ctx context.Context, name string) (any, error) {
-	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)
-	if !isBuilder {
-		panic("unable to find the secret keeper factory in context")
-	}
-
-	return builder.Decode(name)
 }
 
 // DecodePartial works the same as Decode, but does not resolve secret

@@ -18,17 +18,6 @@ func NewOnePassword(url string, token string) *OnePassword {
 	}
 }
 
-func NewOnePasswordFromEnvironment() (*OnePassword, error) {
-	op, err := connect.NewClientFromEnvironment()
-	if err != nil {
-		return nil, err
-	}
-
-	return &OnePassword{
-		pc: op,
-	}, nil
-}
-
 func (o *OnePassword) ListLocations(_ context.Context) ([]string, error) {
 	vs, err := o.pc.GetVaults()
 	if err != nil {
@@ -49,12 +38,12 @@ func (o *OnePassword) ListSecrets(_ context.Context, location string) ([]string,
 		return nil, err
 	}
 
-	secrets := make([]string, 0, len(is))
+	secs := make([]string, 0, len(is))
 	for _, i := range is {
-		secrets = append(secrets, i.ID)
+		secs = append(secs, i.ID)
 	}
 
-	return secrets, nil
+	return secs, nil
 }
 
 func (o *OnePassword) GetSecretsByName(_ context.Context, name string) ([]secrets.Secret, error) {
@@ -63,7 +52,7 @@ func (o *OnePassword) GetSecretsByName(_ context.Context, name string) ([]secret
 		return nil, err
 	}
 
-	var secrets []secrets.Secret
+	var secs []secrets.Secret
 	for _, v := range vs {
 		is, err := o.pc.GetItemsByTitle(name, v.ID)
 		if err != nil {
@@ -71,11 +60,11 @@ func (o *OnePassword) GetSecretsByName(_ context.Context, name string) ([]secret
 		}
 
 		for idx := range is {
-			secrets = append(secrets, newSecret(&is[idx]))
+			secs = append(secs, newSecret(&is[idx]))
 		}
 	}
 
-	return secrets, nil
+	return secs, nil
 }
 
 func (o *OnePassword) GetSecret(_ context.Context, id string) (secrets.Secret, error) {

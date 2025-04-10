@@ -2,6 +2,8 @@ package keyring
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"reflect"
 
 	"github.com/zostay/ghost/pkg/config"
@@ -28,6 +30,17 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	return New(cfg.ServiceName), nil
 }
 
+// Print prints the configuration for the keyring secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isKeyring := c.(*Config)
+	if !isKeyring {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "keyring:", cfg.ServiceName)
+	return nil
+}
+
 func init() {
 	cmd := plugin.CmdConfig{
 		Short: "Configure a secret keeper that uses the system keyring",
@@ -46,5 +59,5 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, Print, cmd)
 }

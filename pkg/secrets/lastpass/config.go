@@ -2,6 +2,8 @@ package lastpass
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"reflect"
 
 	"github.com/zostay/ghost/pkg/config"
@@ -27,12 +29,28 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 		return nil, plugin.ErrConfig
 	}
 
-	kpr, err := NewLastPass(ctx, cfg.Username, cfg.Password)
+	kpr, err := New(ctx, cfg.Username, cfg.Password)
 	if err != nil {
 		return nil, err
 	}
 
 	return kpr, nil
+}
+
+// Print prints the configuration for the lastpass secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isLastpass := c.(*Config)
+	if !isLastpass {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "username:", cfg.Username)
+	passwordVal := "<not set>"
+	if cfg.Password != "" {
+		passwordVal = "<hidden>"
+	}
+	fmt.Fprintln(w, "password:", passwordVal)
+	return nil
 }
 
 func init() {
@@ -58,5 +76,5 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, Print, cmd)
 }

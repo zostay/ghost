@@ -2,6 +2,8 @@ package onepassword
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"reflect"
 
 	"github.com/zostay/ghost/pkg/config"
@@ -22,7 +24,7 @@ type Config struct {
 }
 
 // Builder builds a new 1password secret keeper.
-func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
+func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	cfg, is1password := c.(*Config)
 	if !is1password {
 		return nil, plugin.ErrConfig
@@ -31,6 +33,22 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 	kpr := NewOnePassword(cfg.ConnectHost, cfg.ConnectToken)
 
 	return kpr, nil
+}
+
+// Print prints the configuration for the 1password secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, is1password := c.(*Config)
+	if !is1password {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "connect host:", cfg.ConnectHost)
+	tokenVal := "<not set>"
+	if cfg.ConnectToken != "" {
+		tokenVal = "<hidden>"
+	}
+	fmt.Fprintln(w, "connect token:", tokenVal)
+	return nil
 }
 
 func init() {
@@ -56,5 +74,5 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, Print, cmd)
 }

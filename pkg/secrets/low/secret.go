@@ -37,19 +37,19 @@ func (s *Secret) SetID(id string) {
 
 // MarshalYAML marshals the secret to YAML.
 func (s *Secret) MarshalYAML() (interface{}, error) {
-	lm := s.Single.LastModified()
+	lm := s.LastModified()
 	if lm.IsZero() {
 		lm = time.Now()
 	}
 
 	return map[string]any{
-		"Name":         s.Single.Name(),
-		"Username":     s.Single.Username(),
-		"Password":     s.Single.Password(),
-		"Type":         s.Single.Type(),
-		"Location":     s.Single.Location(),
+		"Name":         s.Name(),
+		"Username":     s.Username(),
+		"Password":     s.Password(),
+		"Type":         s.Type(),
+		"Location":     s.Location(),
 		"URL":          secrets.UrlString(s),
-		"Fields":       s.Single.Fields(),
+		"Fields":       s.Fields(),
 		"LastModified": lm.Unix(),
 	}, nil
 }
@@ -71,7 +71,7 @@ func (s *Secret) UnmarshalYAML(node *yaml.Node) error {
 			for j := 0; j < len(fNode.Content); j += 2 {
 				key := fNode.Content[j].Value
 				val := fNode.Content[j+1].Value
-				s.Single.SetField(key, val)
+				s.SetField(key, val)
 			}
 		}
 
@@ -81,27 +81,27 @@ func (s *Secret) UnmarshalYAML(node *yaml.Node) error {
 
 		switch node.Content[i].Value {
 		case "Name":
-			s.Single.SetName(node.Content[i+1].Value)
+			s.SetName(node.Content[i+1].Value)
 		case "Username":
-			s.Single.SetUsername(node.Content[i+1].Value)
+			s.SetUsername(node.Content[i+1].Value)
 		case "Password":
-			s.Single.SetPassword(node.Content[i+1].Value)
+			s.SetPassword(node.Content[i+1].Value)
 		case "Type":
-			s.Single.SetType(node.Content[i+1].Value)
+			s.SetType(node.Content[i+1].Value)
 		case "Location":
-			s.Single.SetLocation(node.Content[i+1].Value)
+			s.SetLocation(node.Content[i+1].Value)
 		case "URL":
-			url, err := url.Parse(node.Content[i+1].Value)
+			u, err := url.Parse(node.Content[i+1].Value)
 			if err != nil {
 				return err
 			}
-			s.Single.SetUrl(url)
+			s.SetUrl(u)
 		case "LastModified":
 			us, err := strconv.ParseInt(node.Content[i+1].Value, 10, 64)
 			if err != nil {
 				return err
 			}
-			s.Single.SetLastModified(time.Unix(us, 0))
+			s.SetLastModified(time.Unix(us, 0))
 		}
 	}
 

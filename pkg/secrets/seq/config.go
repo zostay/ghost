@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 
 	"github.com/spf13/pflag"
@@ -22,6 +23,20 @@ const ConfigType = "seq"
 type Config struct {
 	// Keepers is the list of keepers to use for the seq keeper.
 	Keepers []string `mapstructure:"keepers" yaml:"keepers"`
+}
+
+// Print prints the configuration for the seq secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isSeq := c.(*Config)
+	if !isSeq {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "keepers:")
+	for _, k := range cfg.Keepers {
+		fmt.Fprintln(w, "-", k)
+	}
+	return nil
 }
 
 // Builder constructs a new seq secret keeper.
@@ -127,5 +142,5 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, Print, cmd)
 }

@@ -248,7 +248,7 @@ func RecoverService() error {
 		errors.Is(err, ErrGRPCClient) ||
 		errors.Is(err, ErrProcessVerification) {
 		// The process appears to be in a bad state.
-		// There'll be killins' next. ~~ Hagrid
+		// There'll be killin's next. ~~ Hagrid
 		return killProcess()
 	}
 

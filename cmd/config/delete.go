@@ -14,7 +14,7 @@ var DeleteCmd = &cobra.Command{
 	Run:   RunDeleteConfig,
 }
 
-func RunDeleteConfig(cmd *cobra.Command, args []string) {
+func RunDeleteConfig(_ *cobra.Command, args []string) {
 	keeperName := args[0]
 	c := config.Instance()
 

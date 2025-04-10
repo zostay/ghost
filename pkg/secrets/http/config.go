@@ -61,7 +61,7 @@ func init() {
 		},
 	}
 
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, nil, cmd)
 }
 
 func MakeHttpServerSocketName() string {

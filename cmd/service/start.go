@@ -33,7 +33,7 @@ func init() {
 	StartCmd.Flags().StringVar(&keeperService, "keeper", "", "the name of the keeper service to use (master used by default)")
 }
 
-func RunStartService(cmd *cobra.Command, args []string) {
+func RunStartService(cmd *cobra.Command, _ []string) {
 	if enforceAllPolicies && len(enforcePolicies) > 0 {
 		s.Logger.Panic("cannot use --enforce-all-policies and --enforce-policy together")
 		return
@@ -60,7 +60,7 @@ func RunStartService(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 	kpr, err := keeper.Build(ctx, keeperService)
 	if err != nil {
 		s.Logger.Panicf("Failed to configure master keeper %q: %v", keeperService, err)

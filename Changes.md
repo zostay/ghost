@@ -1,3 +1,8 @@
+## WIP  TBD
+
+ * Fix: When printing configuration with the `config get` or `config list` commands, correctly print the configuration for 1password and cache.
+ * Fix: When printing configuration with the `config get` or `config list` commands, print full policy configuration.
+
 ## v0.6.2  2024-08-09
 
  * Fix `keyring` keeper so that not found errors are handled correctly.
@@ -38,19 +43,19 @@
  * Added the `--verbose` flag to `ghost sync`.
  * Fix: A bug in how password worked could result in the password display being stuck on the screen permanently. This has been fixed.
  * Fix: (Experimental) Ghost was using a library for password entry that is no longer maintained. This has been switched to a new input mechanism. This may change again.
- * Fix: The `ghost config list` and `ghost config get` commands failed when secret references failed to fully resolve because they depende upon the secret service or something. Now, it may not list  complete configuration, but shouldn't fail or cause a password propmt just to call these sub-commands.
+ * Fix: The `ghost config list` and `ghost config get` commands failed when secret references failed to fully resolve because they depend upon the secret service or something. Now, it may not list  complete configuration, but shouldn't fail or cause a password prompt just to call these sub-commands.
  * Fix: When `ghost service start` runs, check the service status and perform an appropriate recovery routine to correct errors automatically.
  * Fix: The router service correctly validates default and routes keepers now.
 
 ## v0.3.0  2023-10-23
 
  * Add and implement the `GetServiceInfo` endpoint to the gRPC keeper service interface.
- * Add the `ghost service status` command to query the status of the gRPC keeper service, report it's PID, and report the keeper served and the policy enforcement configuration.
+ * Add the `ghost service status` command to query the status of the gRPC keeper service, report its PID, and report the keeper served and the policy enforcement configuration.
 
 ## v0.2.0  2023-09-04
 
  * Rewrite the `ghost sync` command to use name, username, and location as the index key.
- * Add the `keeper.Sync` object to help with copying between between keepers with `AddSecret`, `AddLocationSecret`, `AddSecretKeeper`, `CopyTo`, and `DeleteAbsent` methods and the `NewSync` constructor. This provides the implementation for the rewritten `ghost sync` command.
+ * Add the `keeper.Sync` object to help with copying between keepers with `AddSecret`, `AddLocationSecret`, `AddSecretKeeper`, `CopyTo`, and `DeleteAbsent` methods and the `NewSync` constructor. This provides the implementation for the rewritten `ghost sync` command.
  * Add retries with automatic back-off to the LastPass secret keeper using the same back-off strategy that lastpass-cli uses.
  * Fix: Use "UserName" as the field for the `Username` field in Keepass (previously, "Username" was incorrectly used).
 

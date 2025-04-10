@@ -27,14 +27,14 @@ type Human struct {
 
 var _ secrets.Keeper = &Human{}
 
-// New creates a new human secrets keeper.
+// New creates a new human secret keeper.
 func New() *Human {
 	return &Human{
 		secrets: make(map[string]Question, 1),
 	}
 }
 
-// AddQuestion adds a question to the human secrets keeper.
+// AddQuestion adds a question to the human secret keeper.
 func (h *Human) AddQuestion(
 	id string,
 	askFor []string,
@@ -132,21 +132,21 @@ func (h *Human) GetSecretsByName(ctx context.Context, name string) ([]secrets.Se
 }
 
 // SetSecret fails with an error.
-func (h *Human) SetSecret(_ context.Context, secret secrets.Secret) (secrets.Secret, error) {
+func (h *Human) SetSecret(_ context.Context, _ secrets.Secret) (secrets.Secret, error) {
 	return nil, errors.New("read only")
 }
 
 // CopySecret fails with an error.
-func (h *Human) CopySecret(_ context.Context, id, location string) (secrets.Secret, error) {
+func (h *Human) CopySecret(_ context.Context, _, _ string) (secrets.Secret, error) {
 	return nil, errors.New("read only")
 }
 
 // MoveSecret fails with an error.
-func (h *Human) MoveSecret(_ context.Context, id, location string) (secrets.Secret, error) {
+func (h *Human) MoveSecret(_ context.Context, _, _ string) (secrets.Secret, error) {
 	return nil, errors.New("read only")
 }
 
 // DeleteSecret fails with an error.
-func (h *Human) DeleteSecret(_ context.Context, id string) error {
+func (h *Human) DeleteSecret(_ context.Context, _ string) error {
 	return errors.New("read only")
 }

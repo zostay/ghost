@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 
 	s "github.com/zostay/ghost/cmd/shared"
@@ -23,7 +21,7 @@ func init() {
 	deleteCmd.Flags().StringVar(&name, "name", "", "The name of the secret to get")
 }
 
-func RunDelete(cmd *cobra.Command, args []string) {
+func RunDelete(cmd *cobra.Command, _ []string) {
 	if name != "" && id != "" {
 		s.Logger.Panic("Cannot specify both --id and --name.")
 	}
@@ -45,7 +43,7 @@ func RunDelete(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("No keeper named %q.", keeperName)
 	}
 
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 	kpr, err := keeper.Build(ctx, keeperName)
 	if err != nil {
 		s.Logger.Panic(err)

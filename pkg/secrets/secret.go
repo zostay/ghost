@@ -49,15 +49,6 @@ func WithField(name, value string) SingleOption {
 	})
 }
 
-// WithFields sets the given fields on the secret.
-func WithFields(fields map[string]string) SingleOption {
-	return option(func(s *Single) {
-		for name, value := range fields {
-			s.fields[name] = value
-		}
-	})
-}
-
 // WithID sets the ID of the secret, which is useful when copying a secret using
 // NewSingleFromSecret or when initializing a secret with a known ID using
 // NewSecret.
@@ -122,7 +113,7 @@ func NewSecret(name, username, password string, opts ...SingleOption) *Single {
 	return sec
 }
 
-// NewSecretFromSecret creates a *Single from the given secret with the
+// NewSingleFromSecret creates a *Single from the given secret with the
 // requested modifications applied.
 func NewSingleFromSecret(s Secret, opts ...SingleOption) *Single {
 	sec := &Single{
@@ -171,12 +162,12 @@ func (s *Single) SetUsername(username string) {
 	s.username = username
 }
 
-// Single returns the secret of the secret.
+// Password returns the secret of the secret.
 func (s *Single) Password() string {
 	return s.password
 }
 
-// SetSecret sets the secret of the secret.
+// SetPassword sets the secret of the secret.
 func (s *Single) SetPassword(password string) {
 	s.password = password
 }

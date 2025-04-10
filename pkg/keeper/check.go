@@ -8,7 +8,7 @@ import (
 	"github.com/zostay/ghost/pkg/plugin"
 )
 
-// CheckConfig validates the configuration for all of ghost.
+// CheckConfig validates the configuration for all of the ghost app.
 func CheckConfig(ctx context.Context, c *config.Config) error {
 	errs := plugin.NewValidationError()
 

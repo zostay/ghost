@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 
 	s "github.com/zostay/ghost/cmd/shared"
@@ -31,7 +29,7 @@ func RunEnforcePolicy(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("Keeper %q is not a policy keeper.", keeperName)
 	}
 
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 	kpr, err := keeper.Build(ctx, keeperName)
 	if err != nil {
 		s.Logger.Panicf("Failed to load keeper %q: %s", keeperName, err)

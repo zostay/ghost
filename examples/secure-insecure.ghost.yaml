@@ -1,5 +1,5 @@
 # Sometimes you may want to treat some secrets less carefully and don't mind
-# storing them in a plaintext file. For example, you may want to store a github
+# storing them in a plaintext file. For example, you may want to store a GitHub
 # API token on your laptop in a plaintext file.
 #
 # Using ghost, you can have some secrets stored securely and others not. Here

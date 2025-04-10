@@ -14,7 +14,7 @@ var PluginsCmd = &cobra.Command{
 	Run:   RunListPlugins,
 }
 
-func RunListPlugins(cmd *cobra.Command, args []string) {
+func RunListPlugins(_ *cobra.Command, _ []string) {
 	for _, kt := range plugin.List() {
 		s.Printer.Print(kt)
 	}

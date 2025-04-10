@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -97,7 +96,7 @@ func RunSetKeeperConfig(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	err := keeper.CheckConfig(context.Background(), c)
+	err := keeper.CheckConfig(cmd.Context(), c)
 	if err != nil {
 		s.Logger.Panicf("Configuration failed. Configuration errors: %v", err)
 		return

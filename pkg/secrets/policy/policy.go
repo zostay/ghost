@@ -128,10 +128,12 @@ Loc:
 func (p *Policy) accessibleSecret(sec secrets.Secret) bool {
 	for _, r := range p.matchRule {
 		m := r.matchSecretAndAccessible(p.defaultRule, sec)
-		if m == matchYes {
+		switch m {
+		case matchYes:
 			return true
-		} else if m == matchNo {
+		case matchNo:
 			return false
+		case matchMiss:
 		}
 	}
 
