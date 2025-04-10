@@ -3,6 +3,7 @@ package human
 import (
 	"context"
 	"fmt"
+	"io"
 	"reflect"
 	"strings"
 
@@ -89,6 +90,27 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	return kpr, nil
 }
 
+// Print prints the configuration of the human secrets keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isHuman := c.(*Config)
+	if !isHuman {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "questions:")
+	for _, q := range cfg.Questions {
+		fmt.Fprintln(w, "- id:", q.ID)
+		if len(q.Presets) > 0 {
+			fmt.Fprintln(w, "  presets:")
+			for k, v := range q.Presets {
+				fmt.Fprintln(w, "   ", k, "=", v)
+			}
+		}
+		fmt.Fprintln(w, "asking for:", strings.Join(q.AskFor, ", "))
+	}
+	return nil
+}
+
 func init() {
 	var (
 		setQuestion, removeQuestion string
@@ -153,7 +175,7 @@ func init() {
 		},
 	}
 
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, Print, cmd)
 }
 
 // SetQuestion adds or updates a question in the given keeper configuration.

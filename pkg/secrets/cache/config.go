@@ -3,6 +3,7 @@ package cache
 import (
 	"context"
 	"fmt"
+	"io"
 	"reflect"
 
 	"github.com/spf13/cobra"
@@ -59,6 +60,18 @@ func Validate(ctx context.Context, c any) error {
 	return nil
 }
 
+// Print is the config printer for teh cache keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isCache := c.(*Config)
+	if !isCache {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "cache keeper:", cfg.Keeper)
+	fmt.Fprintln(w, "update cache time on read:", cfg.TouchOnRead)
+	return nil
+}
+
 func init() {
 	var (
 		keeperName  string
@@ -86,5 +99,5 @@ func init() {
 		},
 	}
 
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validate, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validate, Print, cmd)
 }

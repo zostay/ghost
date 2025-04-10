@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"time"
 
@@ -68,6 +69,64 @@ var acceptances = map[string]Acceptance{
 	"allow":   Allow,
 	"deny":    Deny,
 	"inherit": InheritAcceptance,
+}
+
+// Print prints the configuration for the policy secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isPolicy := c.(*Config)
+	if !isPolicy {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "keeper:", cfg.Keeper)
+	fmt.Fprintln(w, "default rule:")
+	defAcceptVal := cfg.DefaultRule.Acceptance
+	if _, isAcceptance := acceptances[cfg.DefaultRule.Acceptance]; !isAcceptance {
+		defAcceptVal = "<incorrect acceptance>"
+	} else if cfg.DefaultRule.Acceptance == "inherit" {
+		defAcceptVal = `<default acceptance cannot be "inherit">`
+	}
+	fmt.Fprintln(w, "  acceptance:", defAcceptVal)
+	if cfg.DefaultRule.Lifetime > 0 {
+		fmt.Fprintln(w, "  lifetime:", cfg.DefaultRule.Lifetime)
+	}
+
+	fmt.Fprintln(w, "rules:")
+	for _, r := range cfg.Rules {
+		acceptVal := r.Acceptance
+		if _, isAcceptance := acceptances[r.Acceptance]; !isAcceptance {
+			acceptVal = "<incorrect acceptance>"
+		}
+		fmt.Fprintln(w, "- acceptance:", acceptVal)
+		fmt.Fprintln(w, "  lifetime:", r.Lifetime)
+
+		hasMatch := r.LocationMatch != "" ||
+			r.NameMatch != "" ||
+			r.UsernameMatch != "" ||
+			r.TypeMatch != "" ||
+			r.UrlMatch != ""
+
+		if hasMatch {
+			fmt.Fprintln(w, "  match:")
+			if r.LocationMatch != "" {
+				fmt.Fprintln(w, "    location:", r.LocationMatch)
+			}
+			if r.NameMatch != "" {
+				fmt.Fprintln(w, "    name:", r.NameMatch)
+			}
+			if r.UsernameMatch != "" {
+				fmt.Fprintln(w, "    username:", r.UsernameMatch)
+			}
+			if r.TypeMatch != "" {
+				fmt.Fprintln(w, "    type:", r.TypeMatch)
+			}
+			if r.UrlMatch != "" {
+				fmt.Fprintln(w, "    url:", r.UrlMatch)
+			}
+		}
+	}
+
+	return nil
 }
 
 // ValidAcceptance returns true if the acceptance string is valid. The values
@@ -319,5 +378,5 @@ func init() {
 		},
 	}
 
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validate, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validate, Print, cmd)
 }

@@ -2,6 +2,8 @@ package keepass
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"os"
 	"reflect"
 
@@ -38,6 +40,22 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	return NewKeepass(path, cfg.Master)
 }
 
+// Print prints the configuration for the Keepass secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isKeepass := c.(*Config)
+	if !isKeepass {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "path:", cfg.Path)
+	masterVal := "<not set>"
+	if cfg.Master != "" {
+		masterVal = "<hidden>"
+	}
+	fmt.Fprintln(w, "master:", masterVal)
+	return nil
+}
+
 func init() {
 	cmd := plugin.CmdConfig{
 		Short: "Configure a Keepass secret keeper",
@@ -61,5 +79,5 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, nil, Print, cmd)
 }

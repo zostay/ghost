@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"sort"
 
@@ -30,6 +31,12 @@ type BuilderFunc func(context.Context, any) (secrets.Keeper, error)
 // recommended that the errors returned by the ValidatorFunc be build using the
 // ValidationError type.
 type ValidatorFunc func(context.Context, any) error
+
+// PrintConfigFunc is a function that should summarize the configuration for the
+// secret keeper to help the user introspect how the configuration has been
+// read and understood. The first argument is the configuration object and the
+// second is the writer to write the summary to.
+type PrintConfigFunc func(any, io.Writer) error
 
 // CmdFunc is a function that gets run via the command-line interface. It is
 // used to configure the secret keeper. The CmdFunc will be editing the
@@ -76,6 +83,7 @@ type RegisteredConfig struct {
 	Config    reflect.Type
 	Builder   BuilderFunc
 	Validator ValidatorFunc
+	Printer   PrintConfigFunc
 	CmdConfig CmdConfig
 }
 
@@ -100,6 +108,7 @@ func Register(
 	config reflect.Type,
 	builder BuilderFunc,
 	validator ValidatorFunc,
+	printer PrintConfigFunc,
 	cmdConfig CmdConfig,
 ) {
 	if _, ok := configs[name]; ok {
@@ -118,6 +127,7 @@ func Register(
 		Config:    config,
 		Builder:   builder,
 		Validator: validator,
+		Printer:   printer,
 		CmdConfig: cmdConfig,
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"reflect"
 	"sort"
 	"strings"
@@ -35,6 +36,22 @@ type RouteConfig struct {
 	Locations []string `mapstructure:"locations" yaml:"locations"`
 	// Keeper is the name of the keeper to use for the route.
 	Keeper string `mapstructure:"keeper" yaml:"keeper"`
+}
+
+// Print prints the configuration for the router secret keeper.
+func Print(c any, w io.Writer) error {
+	cfg, isRouter := c.(*Config)
+	if !isRouter {
+		return plugin.ErrConfig
+	}
+
+	fmt.Fprintln(w, "default route:", cfg.DefaultRoute)
+	fmt.Fprintln(w, "routers:")
+	for _, r := range cfg.Routes {
+		fmt.Fprintln(w, "- locations:", strings.Join(r.Locations, ","))
+		fmt.Fprintln(w, "  keeper:", r.Keeper)
+	}
+	return nil
 }
 
 // Builder constructs a new router secret keeper.
@@ -151,7 +168,7 @@ func init() {
 			return kc, nil
 		},
 	}
-	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, cmd)
+	plugin.Register(ConfigType, reflect.TypeOf(Config{}), Builder, Validator, Print, cmd)
 }
 
 // AddRoute adds a route to the router configuration.

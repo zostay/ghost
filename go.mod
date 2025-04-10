@@ -14,6 +14,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/ncruces/zenity v0.10.13
 	github.com/oklog/ulid/v2 v2.1.0
+	github.com/pborman/indent v1.2.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0

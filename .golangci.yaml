@@ -1,24 +1,14 @@
----
+version: "2"
 run:
   concurrency: 4
-
 linters:
   enable:
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - typecheck
-    - unused
     - depguard
-    - errorlint
     - errname
+    - errorlint
     - exhaustive
-    - exportloopref
     - gocritic
     - godot
-    - gofmt
     - gosec
     - misspell
     - nolintlint
@@ -28,39 +18,57 @@ linters:
     - tparallel
     - unparam
     - whitespace
-
-linters-settings:
-  depguard:
-    rules:
-      main:
-        files:
-          - "$all"
-          - "!$test"
-          - "!**/pkg/secrets/keepertest/*.go"
-        allow:
-          - "$gostd"
-          - github.com/ansd/lastpass-go
-          - github.com/gobwas/glob
-          - github.com/golang
-          - github.com/gopasspw/pinentry
-          - github.com/mitchellh/mapstructure
-          - github.com/mitchellh/go-homedir
-          - github.com/ncruces/zenity
-          - github.com/oklog/ulid
-          - github.com/spf13/cobra
-          - github.com/spf13/pflag
-          - github.com/tobischo/gokeepasslib
-          - github.com/zalando/go-keyring
-          - github.com/zostay
-          - github.com/1Password/connect-sdk-go
-          - github.com/google/uuid
-
-      tests:
-        files:
-          - "$test"
-          - "**/pkg/secrets/keepertest/*.go"
-        allow:
-          - "$gostd"
-          - github.com/stretchr/testify
-          - github.com/zostay
-          - github.com/ansd/lastpass-go
+  settings:
+    depguard:
+      rules:
+        main:
+          files:
+            - $all
+            - '!$test'
+            - '!**/pkg/secrets/keepertest/*.go'
+          allow:
+            - $gostd
+            - github.com/ansd/lastpass-go
+            - github.com/gobwas/glob
+            - github.com/golang
+            - github.com/gopasspw/pinentry
+            - github.com/mitchellh/mapstructure
+            - github.com/mitchellh/go-homedir
+            - github.com/ncruces/zenity
+            - github.com/oklog/ulid
+            - github.com/spf13/cobra
+            - github.com/spf13/pflag
+            - github.com/tobischo/gokeepasslib
+            - github.com/zalando/go-keyring
+            - github.com/zostay
+            - github.com/1Password/connect-sdk-go
+            - github.com/google/uuid
+        tests:
+          files:
+            - $test
+            - '**/pkg/secrets/keepertest/*.go'
+          allow:
+            - $gostd
+            - github.com/stretchr/testify
+            - github.com/zostay
+            - github.com/ansd/lastpass-go
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
