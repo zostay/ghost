@@ -16,7 +16,7 @@ type Rule struct {
 	acceptance Acceptance
 }
 
-// NewRule creates a new rule with the given lifetime and inherit acceptance.
+// NewLifetimeRule creates a new rule with the given lifetime and inherit acceptance.
 func NewLifetimeRule(l time.Duration) *Rule {
 	return &Rule{
 		lifetime:   l,

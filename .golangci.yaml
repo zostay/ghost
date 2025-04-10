@@ -48,6 +48,8 @@ linters:
             - gopkg.in/yaml.v3
             - golang.org/x/term
             - google.golang.org/protobuf
+            - golang.org/x/text/cases
+            - golang.org/x/text/language
         tests:
           files:
             - $test

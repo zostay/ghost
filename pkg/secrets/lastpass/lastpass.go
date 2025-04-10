@@ -15,10 +15,10 @@ import (
 
 var ErrTooManyRetries = errors.New("too many retries")
 
-// LastPassClient defines the interface required for a LastPass client.
+// Client defines the interface required for a LastPass client.
 // Normally, this is fulfilled by lastpass.Client, but is handled as an
 // interface to make testing possible without an actual LastPass account.
-type LastPassClient interface {
+type Client interface {
 	// Accounts should list secrets.
 	Accounts(ctx context.Context) ([]*lastpass.Account, error)
 
@@ -62,7 +62,7 @@ func _retry[T any](run func() (T, error)) (t T, err error) {
 // LastPass is a secret Keeper that gets secrets from the LastPass
 // password manager service.
 type LastPass struct {
-	lp LastPassClient
+	lp Client
 }
 
 var _ secrets.Keeper = &LastPass{}
@@ -70,7 +70,7 @@ var _ secrets.Keeper = &LastPass{}
 // NewLastPassWithClient constructs a new LastPass Keeper with a custom LastPass
 // client. This constructor is mostly intended for use during testing.
 func NewLastPassWithClient(
-	lp LastPassClient,
+	lp Client,
 ) (*LastPass, error) {
 	return &LastPass{lp}, nil
 }
