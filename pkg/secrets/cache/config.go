@@ -60,7 +60,7 @@ func Validate(ctx context.Context, c any) error {
 	return nil
 }
 
-// Print is the config printer for teh cache keeper.
+// Print is the config printer for the cache keeper.
 func Print(c any, w io.Writer) error {
 	cfg, isCache := c.(*Config)
 	if !isCache {
