@@ -37,7 +37,7 @@ func Print(c any, w io.Writer) error {
 		return plugin.ErrConfig
 	}
 
-	fmt.Fprintln(w, "service_name:", cfg.ServiceName)
+	fmt.Fprintln(w, "keyring:", cfg.ServiceName)
 	return nil
 }
 

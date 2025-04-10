@@ -1,3 +1,8 @@
+## WIP  TBD
+
+ * Fix: When printing configuration with the `config get` or `config list` commands, correctly print the configuration for 1password and cache.
+ * Fix: When printing configuration with the `config get` or `config list` commands, print full policy configuration.
+
 ## v0.6.2  2024-08-09
 
  * Fix `keyring` keeper so that not found errors are handled correctly.
