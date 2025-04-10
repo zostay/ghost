@@ -17,7 +17,7 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
-// ConfigType is the type name for the human secrets keeper.
+// ConfigType is the type name for the human secret keeper.
 const ConfigType = "human"
 
 // QuestionConfig is the configuration for a single question. Each question
@@ -37,13 +37,13 @@ type QuestionConfig struct {
 	AskFor []string `mapstructure:"ask_for" yaml:"ask_for"`
 }
 
-// Config is the configuration of the human secrets keeper.
+// Config is the configuration of the human secret keeper.
 type Config struct {
 	// Questions is the list of questions that will be asked of the user.
 	Questions []QuestionConfig `mapstructure:"questions" yaml:"questions"`
 }
 
-// Validator checks that the configuration is correct for the human secrets
+// Validator checks that the configuration is correct for the human secret
 // keeper. It will check that every question has at least one field to ask
 // for and that no question has a preset that is already being asked for.
 func Validator(_ context.Context, c any) error {
@@ -90,7 +90,7 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	return kpr, nil
 }
 
-// Print prints the configuration of the human secrets keeper.
+// Print prints the configuration of the human secret keeper.
 func Print(c any, w io.Writer) error {
 	cfg, isHuman := c.(*Config)
 	if !isHuman {

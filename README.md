@@ -4,7 +4,7 @@
 
 > *CAUTION:* The state of LastPass in this library is pretty iffy. LastPass throttles their service so that it has become unusable for me and the Go library this uses to talk to LastPass appears to have been abandoned. It should be possible to use the CLI or do some CGO work to fix this, but I do not have time and have grown to dislike LastPass for most uses, so I'm not very motivated right now.
 
-This is a secret toolkit written in Go. I use it to backup my online password vault locally and to provide tooling to allow my scripts and such to retrieve secrets without having to store such things in environment files or other ways that make me nervous.
+This is a secret toolkit written in Go. I use it to back up my online password vault locally and to provide tooling to allow my scripts and such to retrieve secrets without having to store such things in environment files or other ways that make me nervous.
 
 I only use this on local machines that only I have access. I cannot vouch for the safety of transport or security of storage of any aspect of this system. As per the terms of the license, you use this software entirely at your own risk. I make no guarantees or warranties regarding the security or safety of this system.
 
@@ -247,7 +247,7 @@ Like the secret commands, you may use the `--keeper=<name>` option to specify th
 ghost service start --keeper=myPasswordService --enforce-all-policies
 ```
 
-This will start the password service running in the foreground. It can be set to run against any keeper specified with the `--keeper=<name>` setting or it will use the `master` keeper configuration.
+This will start the password service running in the foreground. It can be set to run against any keeper specified with the `--keeper=<name>` setting, or it will use the `master` keeper configuration.
 
 The `--enforce-all-policies` option will cause the server to locate all policy secret keepers and enforce all lifetime policies periodically. The period is determined by the value defined in `--enforcement-period`, which defaults to every minute. If you only want to enforce some of your policies this way, you can specify the policies using the `--enforce-policy` option instead.
 
@@ -281,7 +281,7 @@ You will need to look at the usage message for each of the keeper type sub-comma
 
 Sometimes an option will be provided in a special `--*-secret` variant. This allows you to specify a `__SECRET__` reference in the configuration for that particular setting from the command-line. To use it, you will pass a colon-separated list of the relevant fields: keeper, secret, and field.
 
-For example, to set the password to a secret reference in the a Keepass secret keeper, you could do something like this:
+For example, to set the password to a secret reference in the Keepass secret keeper, you could do something like this:
 
 ```
 ghost config set keepass myPasswords \
@@ -322,7 +322,7 @@ The way this is structured is heavily influenced by LastPass and Keepass.
 Basically, each item of data stored is called a **secret**. A secret has a number of fields. The only required field is ID. The only secure field is Password. The list of fields includes:
 
  * **ID**. Is the unique ID given to the secret in the store. Every secret stored must have a unique ID, but the format or length is not specified by this. That's up to the secret keeper.
- * **Name**. This is a title for the secret stored, describing it's purpose. For example, account information related to Facebook might have a name of "Facebook.com" while your wifi password might have the name "Home WiFi". The name is for human reference and is not secure. Names do not have to be unique and generally should not be expected to be unique.
+ * **Name**. This is a title for the secret stored, describing its purpose. For example, account information related to Facebook might have a name of "Facebook.com" while your Wi-Fi password might have the name "Home Wi-Fi". The name is for human reference and is not secure. Names do not have to be unique and generally should not be expected to be unique.
  * **Username**. This is the username for the account. This is not secure.
  * **Password**. This is the password or secret information stored. This is not secure.
  * **URL**. This is the URL of the account, if any.
@@ -339,11 +339,11 @@ A **secret keeper** is a configured storage for secrets. The keepers are divided
 
 The following primary secret keeper types are provided:
 
- * `1password` - The 1Password secret keeper uses the 1Password Connect Server API to access secrets. You will need a 1Password family, business, or enterprise account and some shared vaults. Then you will need to setup a 1Password Connect Server running somewhere.
+ * `1password` - The 1Password secret keeper uses the 1Password Connect Server API to access secrets. You will need a 1Password family, business, or enterprise account and some shared vaults. Then you will need to set up a 1Password Connect Server running somewhere.
  * `http` - The http secret keeper accesses secrets provided by the ghost gRPC service. The ghost service can be run with the `ghost service start` command and used to wrap any keeper in the given configuration. As of this writing, the http keeper may only be used on a local machine as all communication is performed over a unix socket.
  * `human` - The human secret keeper provides a means of asking the person at the keyboard to enter a secret. A human keeper is configured with a number of questions, each acting as a secret the user is expected to supply upon request.
  * `keepass` - The Keepass secret keeper loads and stores secrets in a local Keepass database file. You will need to provide the Keepass secret keeper the path to the file as well as the master password for encrypting and decrypting the file.
- * `keyring` - The keyring secret keeper loads and stores passwords in the system keyring. This should work on macOS, Windows, Linux, and BSD. On macOS it accesses the system keyring using the `security` command. Similarly, it uses the Windows OS keyring on Windows. On Linux and BSD, it uses dbus to communicate with whatever secret service is installed, usually GNOME Keyring. 
+ * `keyring` - The keyring secret keeper loads and stores passwords in the system keyring. This should work on macOS, Windows, Linux, and BSD. On macOS, it accesses the system keyring using the `security` command. Similarly, it uses the Windows OS keyring on Windows. On Linux and BSD, it uses dbus to communicate with whatever secret service is installed, usually GNOME Keyring. 
  * `lastpass` - The LastPass secret keeper uses the LastPass API to access secrets. The secrets are downloaded from the online store and then decrypted locally on get and encrypted locally and set to the online store during set.
  * `low` - The low security secret keeper stores secrets in a local YAML file in plaintext. This is obviously only suitable for secrets that are not very secure or on a system you are very confident in.
  * `memory` - The memory secret keeper will hold a secret encrypted in memory for the duration of the process. Used with the ghost command, this is not very useful. However, it can be useful as a memory store within the ghost service or embedded in an application. The encryption used doesn't guarantee much in the way of safety as the key is also stored in memory, so it may even be considered superfluous.
@@ -352,7 +352,7 @@ The following primary secret keeper types are provided:
 
 The secondary secret keepers exist to provide additional services on top of another secret keeper store. Here is a list of secondary keepers that are provided.
 
- * `cache` - The cache secret keeper is based on the memory secret keeper and wraps some other keeper. Whenever the keeper is used for getting a secret, the secret is saved locally. A `cache` keeper does not permit any write operations except delete, which just deletes a secret from the cache. It does not delete the secret from the wrapped store. This is another keeper that is not much use outside of either the ghost service or embedded application.
+ * `cache` - The cache secret keeper is based on the memory secret keeper and wraps some other keeper. Whenever the keeper is used for getting a secret, the secret is saved locally. A `cache` keeper does not permit any write operations except delete, which just deletes a secret from the cache. It does not delete the secret from the wrapped store. This is another keeper that is not much use outside the ghost service or embedded application.
  * `router` - The router secret keeper combined other secret keepers into a single logical keeper. It uses location as the means by which to decide which keeper to use when getting and storing secrets. If a location that does not match any of the configured routes is used, then a default keeper is used to store that secret.
  * `seq` - The sequential secret keeper combines multiple secret keepers into a single logical keeper. When getting secrets, each keeper is checked for that secret in turn and the first secret found to match is returned. When setting, only the first secret keeper in the sequence is modified.
 

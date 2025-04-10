@@ -35,7 +35,7 @@ type Keeper interface {
 	GetSecretsByName(ctx context.Context, name string) ([]Secret, error)
 
 	// GetSecret returns a secret by unique ID, which is Keeper dependant. If no
-	// secret is found for the given ID, this function should returned a nil
+	// secret is found for the given ID, this function should return a nil
 	// Secret with ErrNotFound.
 	GetSecret(ctx context.Context, id string) (Secret, error)
 

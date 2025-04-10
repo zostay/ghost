@@ -22,7 +22,7 @@ type Keepass struct {
 var _ secrets.Keeper = &Keepass{}
 
 // NewKeepassNoVerify creates a new Keepass Keeper and returns it. It does not
-// attempt to read the database or verify it is setup correctly.
+// attempt to read the database or verify it is set up correctly.
 func NewKeepassNoVerify(path, master string) (*Keepass, error) {
 	db := keepass.NewDatabase()
 	db.Credentials = keepass.NewPasswordCredentials(master)

@@ -80,7 +80,7 @@ func Build(ctx context.Context, name string) (secrets.Keeper, error) {
 	return nil, errors.New("unable to find the secret keeper factory in context")
 }
 
-// Validate checks that the configuration int he context is correct for the
+// Validate checks that the configuration in the context is correct for the
 // named secret keeper.
 func Validate(ctx context.Context, name string) error {
 	builder, isBuilder := ctx.Value(builderKey{}).(*builderContext)

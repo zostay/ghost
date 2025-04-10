@@ -27,14 +27,14 @@ type Human struct {
 
 var _ secrets.Keeper = &Human{}
 
-// New creates a new human secrets keeper.
+// New creates a new human secret keeper.
 func New() *Human {
 	return &Human{
 		secrets: make(map[string]Question, 1),
 	}
 }
 
-// AddQuestion adds a question to the human secrets keeper.
+// AddQuestion adds a question to the human secret keeper.
 func (h *Human) AddQuestion(
 	id string,
 	askFor []string,
