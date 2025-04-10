@@ -207,23 +207,6 @@ func SetField(secret Secret, name, value string) Secret {
 	return &modifier{base: secret, fields: map[string]string{name: value}}
 }
 
-func RemoveField(secret Secret, name string) Secret {
-	if mod, isMod := secret.(SettableFields); isMod {
-		mod.DeleteField(name)
-		return secret
-	}
-
-	return &modifier{base: secret, removeFields: set.New(name)}
-}
-
-func SetLastModified(secret Secret, lastModified time.Time) Secret {
-	if mod, isMod := secret.(SettableLastModified); isMod {
-		mod.SetLastModified(lastModified)
-		return secret
-	}
-	return &modifier{base: secret, lastModified: &lastModified}
-}
-
 func SetUrl(secret Secret, url *url.URL) Secret {
 	if mod, isMod := secret.(SettableUrl); isMod {
 		mod.SetUrl(url)

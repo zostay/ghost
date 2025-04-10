@@ -13,8 +13,6 @@ import (
 	"github.com/zostay/ghost/pkg/secrets"
 )
 
-var ErrTooManyRetries = errors.New("too many retries")
-
 // Client defines the interface required for a LastPass client.
 // Normally, this is fulfilled by lastpass.Client, but is handled as an
 // interface to make testing possible without an actual LastPass account.
@@ -67,19 +65,19 @@ type LastPass struct {
 
 var _ secrets.Keeper = &LastPass{}
 
-// NewLastPassWithClient constructs a new LastPass Keeper with a custom LastPass
+// NewWithCLient constructs a new LastPass Keeper with a custom LastPass
 // client. This constructor is mostly intended for use during testing.
-func NewLastPassWithClient(
+func NewWithCLient(
 	lp Client,
 ) (*LastPass, error) {
 	return &LastPass{lp}, nil
 }
 
-// NewLastPass constructs and returns a new LastPass Keeper or returns an error
+// New constructs and returns a new LastPass Keeper or returns an error
 // if there was a problem during construction.
 //
 // The username and password arguments are used to authenticate with LastPass.
-func NewLastPass(ctx context.Context, username, password string) (*LastPass, error) {
+func New(ctx context.Context, username, password string) (*LastPass, error) {
 	lp, err := lastpass.NewClient(ctx, username, password)
 	if err != nil {
 		return nil, err
@@ -116,14 +114,14 @@ func (l *LastPass) ListSecrets(ctx context.Context, location string) ([]string, 
 		return nil, err
 	}
 
-	secrets := make([]string, 0, len(as))
+	secs := make([]string, 0, len(as))
 	for _, a := range as {
 		if a.Group == location {
-			secrets = append(secrets, a.ID)
+			secs = append(secs, a.ID)
 		}
 	}
 
-	return secrets, nil
+	return secs, nil
 }
 
 func (l *LastPass) getAccount(
@@ -165,14 +163,14 @@ func (l *LastPass) GetSecretsByName(
 		return nil, err
 	}
 
-	secrets := []secrets.Secret{}
+	var secs []secrets.Secret
 	for _, a := range as {
 		if a.Name == name {
-			secrets = append(secrets, newSecret(a))
+			secs = append(secs, newSecret(a))
 		}
 	}
 
-	return secrets, nil
+	return secs, nil
 }
 
 func (l *LastPass) addAccount(ctx context.Context, acc *lastpass.Account) error {

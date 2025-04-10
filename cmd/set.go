@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"errors"
 	neturl "net/url"
 
@@ -44,7 +43,7 @@ func init() {
 	setCmd.Flags().StringToStringVar(&setFlds, "field", map[string]string{}, "The new fields to set")
 }
 
-func RunSet(cmd *cobra.Command, args []string) {
+func RunSet(cmd *cobra.Command, _ []string) {
 	if name != "" && id != "" {
 		s.Logger.Panic("Cannot specify both --id and --name.")
 	}
@@ -88,7 +87,7 @@ func RunSet(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("No keeper named %q.", keeperName)
 	}
 
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 	kpr, err := keeper.Build(ctx, keeperName)
 	if err != nil {
 		s.Logger.Panic(err)

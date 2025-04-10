@@ -24,15 +24,6 @@ type Memory struct {
 
 var _ secrets.Keeper = &Memory{}
 
-// MustNew calls New and panics if it returns an error.
-func MustNew() *Memory {
-	i, err := New()
-	if err != nil {
-		panic(err)
-	}
-	return i
-}
-
 // New constructs a new secret memory store.
 func New() (*Memory, error) {
 	k := make([]byte, 32)

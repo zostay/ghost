@@ -24,7 +24,7 @@ type Config struct {
 }
 
 // Builder builds a new 1password secret keeper.
-func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
+func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 	cfg, is1password := c.(*Config)
 	if !is1password {
 		return nil, plugin.ErrConfig

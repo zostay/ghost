@@ -91,11 +91,11 @@ func (s *Secret) UnmarshalYAML(node *yaml.Node) error {
 		case "Location":
 			s.Single.SetLocation(node.Content[i+1].Value)
 		case "URL":
-			url, err := url.Parse(node.Content[i+1].Value)
+			u, err := url.Parse(node.Content[i+1].Value)
 			if err != nil {
 				return err
 			}
-			s.Single.SetUrl(url)
+			s.Single.SetUrl(u)
 		case "LastModified":
 			us, err := strconv.ParseInt(node.Content[i+1].Value, 10, 64)
 			if err != nil {

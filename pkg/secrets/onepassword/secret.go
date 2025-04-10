@@ -168,7 +168,7 @@ func (s *Single) Type() string {
 	return ""
 }
 
-func (s *Single) SetType(typ string) {}
+func (s *Single) SetType(_ string) {}
 
 func (s *Single) Fields() map[string]string {
 	flds := make(map[string]string, len(s.item.Fields))

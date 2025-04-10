@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"strings"
 
@@ -43,7 +42,7 @@ func init() {
 	getCmd.Flags().StringVar(&envPrefix, "env-prefix", "", "The prefix to use when output is env")
 }
 
-func RunGet(cmd *cobra.Command, args []string) {
+func RunGet(cmd *cobra.Command, _ []string) {
 	if name != "" && id != "" {
 		s.Logger.Panic("Cannot specify both --id and --name.")
 	}
@@ -65,13 +64,13 @@ func RunGet(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("No keeper named %q.", keeperName)
 	}
 
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 	kpr, err := keeper.Build(ctx, keeperName)
 	if err != nil {
 		s.Logger.Panic(err)
 	}
 
-	secs := []secrets.Secret{}
+	var secs []secrets.Secret
 	if id != "" {
 		sec, err := kpr.GetSecret(ctx, id)
 		if err != nil {

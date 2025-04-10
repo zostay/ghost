@@ -49,15 +49,6 @@ func WithField(name, value string) SingleOption {
 	})
 }
 
-// WithFields sets the given fields on the secret.
-func WithFields(fields map[string]string) SingleOption {
-	return option(func(s *Single) {
-		for name, value := range fields {
-			s.fields[name] = value
-		}
-	})
-}
-
 // WithID sets the ID of the secret, which is useful when copying a secret using
 // NewSingleFromSecret or when initializing a secret with a known ID using
 // NewSecret.

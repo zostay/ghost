@@ -68,13 +68,13 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 
 	r := NewRouter(defaultKeeper)
 	for _, rt := range cfg.Routes {
-		keeper, err := keeper.Build(ctx, rt.Keeper)
+		kpr, err := keeper.Build(ctx, rt.Keeper)
 		if err != nil {
 			locs := strings.Join(rt.Locations, ",")
 			return nil, fmt.Errorf("unable to build the secret keeper named %q for the route to %q: %w", rt.Keeper, locs, err)
 		}
 
-		err = r.AddKeeper(keeper, rt.Locations...)
+		err = r.AddKeeper(kpr, rt.Locations...)
 		if err != nil {
 			locs := strings.Join(rt.Locations, ",")
 			return nil, fmt.Errorf("unable to add a route for the secret keeper named %q for the route to %q: %w", rt.Keeper, locs, err)
@@ -213,7 +213,7 @@ func RemoveLocationsAndRoutes(rc config.KeeperConfig, removeLocations ...string)
 	routes := rc["routes"].([]map[string]any)
 	removeSet := set.New(removeLocations...)
 
-	deleteRoutes := []int{}
+	var deleteRoutes []int
 	for i, r := range routes {
 		locations := r["locations"].([]any)
 		for _, loc := range locations {

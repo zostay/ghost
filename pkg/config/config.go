@@ -99,10 +99,10 @@ func (c *Config) Save(requestedPath string) error {
 	if err != nil {
 		return err
 	}
-	defer cf.Close()
+	defer func() { _ = cf.Close() }()
 
 	enc := yaml.NewEncoder(cf)
-	defer enc.Close()
+	defer func() { _ = enc.Close() }()
 	enc.SetIndent(2)
 	err = enc.Encode(c)
 	if err != nil {

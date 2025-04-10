@@ -28,7 +28,7 @@ func (c *Client) ListLocations(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
-	locations := []string{}
+	var locations []string
 	for {
 		loc, err := locStream.Recv()
 		if errors.Is(err, io.EOF) {
@@ -51,7 +51,7 @@ func (c *Client) ListSecrets(ctx context.Context, location string) ([]string, er
 		return nil, err
 	}
 
-	secs := []string{}
+	var secs []string
 	for {
 		sec, err := secStream.Recv()
 		if errors.Is(err, io.EOF) {
@@ -88,7 +88,7 @@ func (c *Client) GetSecretsByName(ctx context.Context, name string) ([]secrets.S
 		return nil, err
 	}
 
-	secs := []secrets.Secret{}
+	var secs []secrets.Secret
 	for {
 		sec, err := rawSecs.Recv()
 		if errors.Is(err, io.EOF) {

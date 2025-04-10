@@ -1,8 +1,6 @@
 package list
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 
 	s "github.com/zostay/ghost/cmd/shared"
@@ -34,7 +32,7 @@ func init() {
 	}
 }
 
-func RunListSecrets(cmd *cobra.Command, args []string) {
+func RunListSecrets(cmd *cobra.Command, _ []string) {
 	c := config.Instance()
 	if keeperName == "" {
 		keeperName = c.MasterKeeper
@@ -48,7 +46,7 @@ func RunListSecrets(cmd *cobra.Command, args []string) {
 		s.Logger.Panicf("No keeper named %q.", keeperName)
 	}
 
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 	kpr, err := keeper.Build(ctx, keeperName)
 	if err != nil {
 		s.Logger.Panic(err)

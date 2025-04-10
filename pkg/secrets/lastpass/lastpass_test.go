@@ -57,7 +57,7 @@ func TestLastPass(t *testing.T) {
 	t.Parallel()
 
 	factory := func() (secrets.Keeper, error) {
-		return lastpass.NewLastPassWithClient(newTestLastPass())
+		return lastpass.NewWithCLient(newTestLastPass())
 	}
 
 	ts := keepertest.New(factory)

@@ -1,7 +1,6 @@
 package config
 
 import (
-	"context"
 	"sort"
 
 	"github.com/spf13/cobra"
@@ -19,9 +18,9 @@ var ListCmd = &cobra.Command{
 	Run:   RunListConfig,
 }
 
-func RunListConfig(cmd *cobra.Command, args []string) {
+func RunListConfig(cmd *cobra.Command, _ []string) {
 	c := config.Instance()
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 
 	keys := maps.Keys(c.Keepers)
 	sort.Strings(keys)

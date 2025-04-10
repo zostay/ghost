@@ -82,8 +82,8 @@ func (s *Secret) SetPassword(secret string) {
 
 // Url returns the LastPass account URL.
 func (s *Secret) Url() *url.URL {
-	url, _ := url.Parse(s.Account.URL)
-	return url
+	u, _ := url.Parse(s.Account.URL)
+	return u
 }
 
 // SetUrl sets the LastPass account URL.

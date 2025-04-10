@@ -157,8 +157,8 @@ func sample[T any](from []T, count int) []T {
 }
 
 func pick[T any](from []T) T {
-	max := big.NewInt(int64(len(from)))
-	p, err := rand.Int(rand.Reader, max)
+	mx := big.NewInt(int64(len(from)))
+	p, err := rand.Int(rand.Reader, mx)
 	if err != nil {
 		s.Logger.Panic(err)
 	}

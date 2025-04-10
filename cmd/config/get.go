@@ -24,7 +24,7 @@ var GetCmd = &cobra.Command{
 func RunGet(cmd *cobra.Command, args []string) {
 	keeperName := args[0]
 	c := config.Instance()
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 	kpr, hasKeeper := c.Keepers[keeperName]
 	if !hasKeeper {
 		s.Logger.Panicf("Keeper %q is not configured.", keeperName)

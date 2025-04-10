@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"errors"
 
 	"github.com/spf13/cobra"
@@ -45,12 +44,12 @@ func init() {
 	syncCmd.Flags().BoolVar(&overwriteMatching, "overwrite-matching", false, "When synchronizing, overwrite secrets in the destination that match the source (by name, username, and location).")
 }
 
-func RunSync(_ *cobra.Command, args []string) {
+func RunSync(cmd *cobra.Command, args []string) {
 	fromKeeper := args[0]
 	toKeeper := args[1]
 
 	c := config.Instance()
-	ctx := keeper.WithBuilder(context.Background(), c)
+	ctx := keeper.WithBuilder(cmd.Context(), c)
 	fromKpr, err := keeper.Build(ctx, fromKeeper)
 	if err != nil {
 		s.Logger.Panic(err)

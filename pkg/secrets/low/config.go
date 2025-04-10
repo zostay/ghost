@@ -35,7 +35,7 @@ func Builder(_ context.Context, c any) (secrets.Keeper, error) {
 		return nil, err
 	}
 
-	return NewLowSecurity(path), nil
+	return NewSecurity(path), nil
 }
 
 // Print prints the configuration for the low-security secret keeper.

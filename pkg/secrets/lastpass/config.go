@@ -29,7 +29,7 @@ func Builder(ctx context.Context, c any) (secrets.Keeper, error) {
 		return nil, plugin.ErrConfig
 	}
 
-	kpr, err := NewLastPass(ctx, cfg.Username, cfg.Password)
+	kpr, err := New(ctx, cfg.Username, cfg.Password)
 	if err != nil {
 		return nil, err
 	}

@@ -18,26 +18,26 @@ import (
 // supported.
 var ErrUnsupportedVersion = errors.New("unsupported low security file version")
 
-// LowSecurity is a secret keeper for storing secrets in plain text. Only
+// Security is a secret keeper for storing secrets in plain text. Only
 // suitable for very low value secrets.
-type LowSecurity struct {
+type Security struct {
 	// LoaderSaver is the loader/saver to use for the secrets.
 	fssafe.LoaderSaver
 }
 
-var _ secrets.Keeper = &LowSecurity{}
+var _ secrets.Keeper = &Security{}
 
-// NewLowSecurity creates a new low security secret keeper at the given path.
-func NewLowSecurity(path string) *LowSecurity {
-	return &LowSecurity{
+// NewSecurity creates a new low security secret keeper at the given path.
+func NewSecurity(path string) *Security {
+	return &Security{
 		LoaderSaver: fssafe.NewFileSystemLoaderSaver(path),
 	}
 }
 
-// NewLowSecurityCustom creates a new low security secret keeper with the given
+// NewSecurityCustom creates a new low security secret keeper with the given
 // loader/saver.
-func NewLowSecurityCustom(ls fssafe.LoaderSaver) *LowSecurity {
-	return &LowSecurity{
+func NewSecurityCustom(ls fssafe.LoaderSaver) *Security {
+	return &Security{
 		LoaderSaver: ls,
 	}
 }
@@ -47,7 +47,7 @@ func makeID() string {
 }
 
 // loadSecrets loads the secrets from file.
-func (s *LowSecurity) loadSecrets() (*lowSecurityConfig, error) {
+func (s *Security) loadSecrets() (*lowSecurityConfig, error) {
 	r, err := s.Loader()
 	if err != nil {
 		// give saving a try first
@@ -82,7 +82,7 @@ func (s *LowSecurity) loadSecrets() (*lowSecurityConfig, error) {
 }
 
 // saveSecrets saves the secrets to file.
-func (s *LowSecurity) saveSecrets(cfg *lowSecurityConfig) error {
+func (s *Security) saveSecrets(cfg *lowSecurityConfig) error {
 	w, err := s.Saver()
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func (s *LowSecurity) saveSecrets(cfg *lowSecurityConfig) error {
 }
 
 // ListLocations returns all the locations listed in the low security file.
-func (s *LowSecurity) ListLocations(context.Context) ([]string, error) {
+func (s *Security) ListLocations(context.Context) ([]string, error) {
 	cfg, err := s.loadSecrets()
 	if err != nil {
 		return nil, err
@@ -120,8 +120,8 @@ func (s *LowSecurity) ListLocations(context.Context) ([]string, error) {
 
 // ListSecrets returns all the secrets listed in the low security file for the
 // given location.
-func (s *LowSecurity) ListSecrets(
-	ctx context.Context,
+func (s *Security) ListSecrets(
+	_ context.Context,
 	location string,
 ) ([]string, error) {
 	cfg, err := s.loadSecrets()
@@ -142,8 +142,8 @@ func (s *LowSecurity) ListSecrets(
 }
 
 // GetSecret returns the secret with the given ID from the low security file.
-func (s *LowSecurity) GetSecret(
-	ctx context.Context,
+func (s *Security) GetSecret(
+	_ context.Context,
 	id string,
 ) (secrets.Secret, error) {
 	cfg, err := s.loadSecrets()
@@ -161,8 +161,8 @@ func (s *LowSecurity) GetSecret(
 
 // GetSecretsByName returns all the secrets with the given name from the low
 // security file.
-func (s *LowSecurity) GetSecretsByName(
-	ctx context.Context,
+func (s *Security) GetSecretsByName(
+	_ context.Context,
 	name string,
 ) ([]secrets.Secret, error) {
 	cfg, err := s.loadSecrets()
@@ -185,8 +185,8 @@ func (s *LowSecurity) GetSecretsByName(
 }
 
 // SetSecret sets the secret with the given ID in the low security file.
-func (s *LowSecurity) SetSecret(
-	ctx context.Context,
+func (s *Security) SetSecret(
+	_ context.Context,
 	secret secrets.Secret,
 ) (secrets.Secret, error) {
 	cfg, err := s.loadSecrets()
@@ -210,8 +210,8 @@ func (s *LowSecurity) SetSecret(
 
 // DeleteSecret deletes the secret with the given ID from the low security
 // file.
-func (s *LowSecurity) DeleteSecret(
-	ctx context.Context,
+func (s *Security) DeleteSecret(
+	_ context.Context,
 	id string,
 ) error {
 	cfg, err := s.loadSecrets()
@@ -231,8 +231,8 @@ func (s *LowSecurity) DeleteSecret(
 
 // CopySecret copies the secret with the given ID from the low security file
 // to the given location.
-func (s *LowSecurity) CopySecret(
-	ctx context.Context,
+func (s *Security) CopySecret(
+	_ context.Context,
 	id string,
 	location string,
 ) (secrets.Secret, error) {
@@ -259,8 +259,8 @@ func (s *LowSecurity) CopySecret(
 }
 
 // MoveSecret moves the secre to a new location.
-func (s *LowSecurity) MoveSecret(
-	ctx context.Context,
+func (s *Security) MoveSecret(
+	_ context.Context,
 	id string,
 	location string,
 ) (secrets.Secret, error) {
