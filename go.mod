@@ -17,7 +17,7 @@ require (
 	github.com/pborman/indent v1.2.1
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/tobischo/gokeepasslib/v3 v3.6.0
 	github.com/zalando/go-keyring v0.2.5
 	github.com/zostay/fssafe v0.1.1
