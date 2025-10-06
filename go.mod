@@ -1,8 +1,6 @@
 module github.com/zostay/ghost
 
-go 1.22.0
-
-toolchain go1.22.4
+go 1.23
 
 require (
 	github.com/1Password/connect-sdk-go v1.5.3
@@ -25,7 +23,7 @@ require (
 	golang.org/x/term v0.22.0
 	golang.org/x/text v0.19.0
 	google.golang.org/grpc v1.65.0
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.36.10
 	gopkg.in/yaml.v3 v3.0.1
 )
 
